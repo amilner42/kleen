@@ -1,1 +1,1 @@
-export type structures = string;
+export declare const ello: () => number;

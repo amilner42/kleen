@@ -1,6 +1,6 @@
 {
   "name": "kleen",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Simple runtime data validation",
   "main": "lib/main.js",
   "files": [
