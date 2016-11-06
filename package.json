@@ -25,10 +25,11 @@
     "url": "https://github.com/amilner42/kleen/issues"
   },
   "homepage": "https://github.com/amilner42/kleen#readme",
-  "dependencies": { },
+  "dependencies": {},
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-preset-es2015": "^6.18.0",
+    "mocha": "^3.1.2",
     "typescript": "^2.0.7",
     "typings": "^1.5.0"
   }
