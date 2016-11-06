@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "ramda": "registry:npm/ramda#0.21.0+20160531162943"
-  },
-  "globalDependencies": {
-    "bluebird": "registry:dt/bluebird#3.0.0+20160928162057"
-  }
-}

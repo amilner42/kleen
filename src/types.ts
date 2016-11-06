@@ -2,15 +2,18 @@
 
 
 /**
- * Every type should extend `baseType` so that it specifies what category
- * it is in, this makes programmtically sifting through types simpler.
- * Additionally, custom error messages on type failures can be useful, so
- * you are optionally allowed to add an `errorMessageOnTypeFailure` specifying
- * the message to error with on type failure.
+ * Every type should extend `baseType` so that it specifies:
+ *   - What kind of type it is (array or object etc...)
+ *   - [Optionally] A custom error `any` if the type is invalid (this is not
+ *     the same as the restriction failing).
+ *   - [Optionally] Specify that null is allowed, by default it is not.
+ *   - [Optionally] Specify that undefined is allowed, by default it is not.
  */
-interface baseType {
+export interface baseType {
   kindOfType: kindOfType;
-  errorMessageOnTypeFailure?: string;
+  customErrorOnTypeFailure?: any;
+  nullAllowed?: boolean;
+  undefinedAllowed?: boolean;
 }
 
 
@@ -20,7 +23,7 @@ interface baseType {
  * unions (because in a union, each type should have it's own
  * restrictions).
  */
-interface restrictableType extends baseType {
+export interface restrictableType extends baseType {
   restriction?: restriction;
 }
 
@@ -32,12 +35,17 @@ export enum kindOfType {
   primitive,
   array,
   union,
-  interface
+  object
 }
 
 
 /**
  * The 6 Javascript primitive types.
+ *
+ * NOTE: symbols are dropped completely in `JSON.stringify`, so you definitely
+ *       shouldn't be sending those fromt the frontend, and I see very little
+ *       use-case for specifically requesting null/undefined, but for
+ *       flexibility all javascript primitives are included.
  */
 export enum kindOfPrimitive {
   string,
@@ -127,4 +135,18 @@ export interface unionStructure extends baseType {
    * A union of all the types in `types`.
    */
   types: typeStructure[];
+}
+
+
+/**
+ * Possible errors thrown by the type being invalid.
+ */
+export enum typeError {
+  nullField,
+  undefinedField,
+  primitiveFieldInvalid,
+  arrayFieldInvalid,
+  objectFieldInvalid,
+  objectHasExtraFields,
+  unionHasNoMatchingType
 }
