@@ -8,11 +8,23 @@ type mochaDone = (error?: any) => any;
 
 
 /**
+ * Mocha helper, makes sure promise errors, doesn't care with what.
+ */
+export const mochaAssertPromiseErrors = (
+    promise: Promise<any>,
+    done: mochaDone)
+    : void => {
+
+  mochaAssertPromiseErrorsWith(promise, (error) => true, done);
+}
+
+
+/**
  * Mocha helper for testing that functions error with expected error.
  */
 export const mochaAssertPromiseErrorsWith = (
     promise: Promise<any>,
-    errorResultsBad: (any) => boolean,
+    errorResultsGood: (any) => boolean,
     done: mochaDone )
     : void => {
 
@@ -21,10 +33,10 @@ export const mochaAssertPromiseErrorsWith = (
     done("Promise was supposed to error");
   })
   .catch((error) => {
-    if(errorResultsBad(error)) {
-      done("Promise errored but results were bad: " + error)
-    } else {
+    if(errorResultsGood(error)) {
       done();
+    } else {
+      done("Promise errored but results were bad: " + error);
     }
   });
 }
@@ -33,7 +45,11 @@ export const mochaAssertPromiseErrorsWith = (
 /**
  * Mocha helper for making sure a promise resolves.
  */
-export const mochaAssertPromiseResovles = (promise: Promise<any>, done: mochaDone): void => {
+export const mochaAssertPromiseResovles = (
+    promise: Promise<any>,
+    done: mochaDone)
+    : void => {
+
   promise
   .then(() => {
     done();
