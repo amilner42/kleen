@@ -188,7 +188,7 @@ But hold your horses captain, there's more. What if you don't _only_ care that
 the type is correct, but also that some restrictions are met...perhaps you
 want the `password` field to be more than 85 characters.
 
-```
+```typescript
 const userTypeWithPasswordRestriction: objectStructure = {
   kindOfType: kleen.kindOfType.object,
   properties: {
