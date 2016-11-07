@@ -9,7 +9,21 @@ code more readable by avoiding the imperative mess we often get when validating
 our data models as well as keeping our code DRY.
 
 
-### What exactly does this library do?
+### Download
+
+`npm install kleen --save`
+
+This is a strongly-typed npm package, so typings work out of the box.
+
+
+### Examples
+
+The best way to learn is to take a look at some examples, the API after all is
+incredibly *simple*. Head over to my [tests](tests/main.test.ts) and it should
+all become clear!
+
+
+### What does this library do?
 
 `validModel` will guarantee the following 4 things about the structure of a
 model.
@@ -42,7 +56,9 @@ will work perfectly with this one, and can be simply placed inside a
 restriction.
 
 
-### Restrictions
+### Library Extra Details
+
+##### Restrictions
 
 Restrictions are simple, at any point of a "model" we should be able to check
 things beyond the type itself, for example you might not only require that a
@@ -67,7 +83,7 @@ support custom error messages, in fact that's a core part of the way
 restrictions work, that way when validation fails you know exactly what went
 wrong and can handle the situation appropriately.
 
-### Null is a string right? Let's append something...huh..an error...
+##### Null is a string right? Let's append something...huh..an error...
 
 One of my least favorite parts of working with Typescript (and many other
 languages) is that null/undefined are all types...well not at runtime...This is
@@ -81,13 +97,6 @@ you expect it to be an array of integers, this library assumes you really mean
 that. If you want to allow an object to be null or undefined, you have to
 specify that, most of the time you don't so the default behavior has been chosen
 to be the most common and safest.
-
-
-### Examples
-
-The best way to learn is to take a look at some examples, the API after all is
-incredibly *simple*. Simply head over to my [tests](TODO) and it should all
-become clear!
 
 
 ### Contributing

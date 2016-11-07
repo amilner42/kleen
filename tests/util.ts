@@ -50,11 +50,58 @@ export const mochaAssertPromiseResovles = (
     done: mochaDone)
     : void => {
 
+  mochaAssertPromiseResovlesWith(
+    promise,
+    (result) => {
+      return true; // we don't care about the result
+    },
+    done
+  );
+}
+
+
+/**
+ * Mocha helper for making sure a promise resolves.
+ */
+export const mochaAssertPromiseResovlesWith = (
+    promise: Promise<any>,
+    goodResult: (result: any) => boolean,
+    done: mochaDone)
+    : void => {
+
   promise
-  .then(() => {
-    done();
+  .then((result) => {
+    if(goodResult(result)) {
+      done();
+    } else {
+      done("Promise resolved but with bad results: " + result);
+    }
   })
   .catch((error) => {
     done("Promise errored with: " + error);
   });
 }
+
+
+/**
+ * Resolves the promise with `value` after `milli` milliseconds.
+ */
+export const resolveAfterMilli = function<t>(value: t, milli: number): Promise<t> {
+  return new Promise<t>((resolve, reject) => {
+    setTimeout(() => {
+      resolve(value);
+    }, milli)
+  });
+};
+
+
+/**
+ * Rejects the promise with `value` after `milli` milliseconds.
+ */
+export const rejectAferMilli = function<t>(value: t, milli: number): Promise<t> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      reject(value);
+    }, milli);
+  });
+};

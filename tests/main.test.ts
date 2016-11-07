@@ -11,12 +11,12 @@ import {
   kindOfPrimitive,
   kindOfType,
   typeError
-  } from "../src/main";
+} from "../src/main";
 import {
   mochaAssertPromiseErrorsWith,
   mochaAssertPromiseResovles,
   mochaAssertPromiseErrors
-  } from "./util";
+} from "./util";
 
 
 describe("src/main.ts", function() {
