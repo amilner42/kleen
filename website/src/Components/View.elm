@@ -1,8 +1,8 @@
 module Components.View exposing (view)
 
-import Html exposing (Html, span, div, text, a)
-import Html.Events exposing (onClick)
-import Html.Attributes exposing (class, href)
+import Html exposing (Html, span, div, text, a, textarea)
+import Html.Events exposing (onClick, onInput)
+import Html.Attributes exposing (class, href, placeholder, value)
 import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import Models.Route as Route
@@ -77,8 +77,23 @@ subBar =
 generatorView : Model -> Html Msg
 generatorView model =
     div
-        []
-        [ text "Development in progress..." ]
+        [ class "generator-view" ]
+        [ div
+            [ class "text-areas" ]
+            [ textarea
+                [ class "input-text-area"
+                , placeholder "Enter Typescript Types"
+                , onInput OnGeneratorInput
+                , value model.generatorInput
+                ]
+                []
+            , textarea
+                [ class "output-text-area"
+                , placeholder "Get Runtime Validation Structures"
+                ]
+                []
+            ]
+        ]
 
 
 {-| The main view (or the "welcome" view, the root of the website.)

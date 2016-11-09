@@ -71,5 +71,33 @@
 
       }
     }
+
+    .generator-view {
+      position: relative;
+      display: block;
+      width: 100%;
+
+      textarea {
+        position: relative;
+        display: inline-block;
+        width: 500px;
+        height: 500px;
+        resize: none;
+      }
+
+      .input-text-area {
+        margin-right: 25px;
+      }
+
+      .output-text-area {
+        margin-left: 25px;
+      }
+
+      .text-areas {
+        margin-top: 25px;
+        width: 100%;
+        text-align: center;
+      }
+    }
   }
 }

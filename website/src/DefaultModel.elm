@@ -9,4 +9,5 @@ import Models.Route as Route
 defaultModel : Model.Model
 defaultModel =
     { route = Route.MainView
+    , generatorInput = ""
     }

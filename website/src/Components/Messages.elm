@@ -12,3 +12,4 @@ type Msg
     | OnLoadModelFromLocalStorageSuccess BaseModel.Model
     | OnLoadModelFromLocalStorageFailure String
     | SwitchView Route.Route
+    | OnGeneratorInput String

@@ -10,6 +10,7 @@ import Models.Route as Route
 -}
 type alias Model =
     { route : Route.Route
+    , generatorInput : String
     }
 
 
@@ -19,6 +20,7 @@ cacheEncoder : Model -> Encode.Value
 cacheEncoder record =
     Encode.object
         [ ( "route", Route.cacheEncoder record.route )
+        , ( "generatorInput", Encode.string record.generatorInput )
         ]
 
 
@@ -28,3 +30,4 @@ cacheDecoder : Decode.Decoder Model
 cacheDecoder =
     decode Model
         |> required "route" Route.cacheDecoder
+        |> required "generatorInput" Decode.string

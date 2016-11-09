@@ -36,6 +36,13 @@ updateCacheIf shouldCache msg model =
 
                 SwitchView route ->
                     ( model, Router.navigateTo route )
+
+                OnGeneratorInput newGeneratorInput ->
+                    let
+                        newModel =
+                            { model | generatorInput = newGeneratorInput }
+                    in
+                        ( newModel, Cmd.none )
     in
         if shouldCache then
             ( newModel
