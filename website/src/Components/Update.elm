@@ -4,6 +4,7 @@ import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Router as Router
+import Ports
 
 
 {-| Base Component Update.
@@ -41,6 +42,16 @@ updateCacheIf shouldCache msg model =
                     let
                         newModel =
                             { model | generatorInput = newGeneratorInput }
+
+                        newCmd =
+                            Ports.compileTypescript newGeneratorInput
+                    in
+                        ( newModel, newCmd )
+
+                OnCompileTypescript newGeneratorOutput ->
+                    let
+                        newModel =
+                            { model | generatorOutput = newGeneratorOutput }
                     in
                         ( newModel, Cmd.none )
     in

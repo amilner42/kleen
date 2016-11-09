@@ -29,5 +29,7 @@
     "style-loader": "^0.13.1",
     "webpack": "^1.13.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "typescript": "^2.0.8"
+  }
 }

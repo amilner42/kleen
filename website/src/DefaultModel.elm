@@ -10,4 +10,5 @@ defaultModel : Model.Model
 defaultModel =
     { route = Route.MainView
     , generatorInput = ""
+    , generatorOutput = ""
     }

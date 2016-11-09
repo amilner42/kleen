@@ -16,3 +16,13 @@ port loadModelFromLocalStorage : () -> Cmd msg
 {-| Upon loading the model from local storage.
 -}
 port onLoadModelFromLocalStorage : (String -> msg) -> Sub msg
+
+
+{-| Triggers the typescript compiler.
+-}
+port compileTypescript : String -> Cmd msg
+
+
+{-| Callback for compilation.
+-}
+port onCompileTypescript : (String -> msg) -> Sub msg

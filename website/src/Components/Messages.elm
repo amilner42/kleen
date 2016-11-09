@@ -13,3 +13,4 @@ type Msg
     | OnLoadModelFromLocalStorageFailure String
     | SwitchView Route.Route
     | OnGeneratorInput String
+    | OnCompileTypescript String

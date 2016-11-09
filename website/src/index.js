@@ -33,3 +33,10 @@ app.ports.loadModelFromLocalStorage.subscribe(function() {
   // you send null through the port because we say it expects a string.
   app.ports.onLoadModelFromLocalStorage.send(localStorage.getItem(modelKey) || "")
 });
+
+
+// Typescript compile port.
+app.ports.compileTypescript.subscribe(function(typescriptToCompile) {
+  // Do typescript complition.
+  app.ports.onCompileTypescript.send(typescriptToCompile + "compiled...");
+});

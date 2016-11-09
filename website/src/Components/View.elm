@@ -90,6 +90,7 @@ generatorView model =
             , textarea
                 [ class "output-text-area"
                 , placeholder "Get Runtime Validation Structures"
+                , value model.generatorOutput
                 ]
                 []
             ]
