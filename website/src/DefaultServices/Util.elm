@@ -90,14 +90,21 @@ isNotNothing maybeValue =
 {-| Returns `baseClasses` if `boolean` is False, otherwise returns `baseClasses`
 with `additionalClasses`. Basic helper for conditionally adding classes.
 -}
-withClassesIf : String -> String -> Bool -> String
-withClassesIf baseClasses additionalClasses boolean =
-    case boolean of
-        True ->
-            baseClasses ++ " " ++ additionalClasses
-
-        False ->
-            baseClasses
+conditionalClasses : List ( Bool, String ) -> Html.Attribute msg
+conditionalClasses listOfPotentialClasses =
+    let
+        listOfClassesAsString =
+            listOfPotentialClasses
+                |> List.foldl
+                    (\( attachClass, className ) classes ->
+                        if attachClass then
+                            classes ++ className ++ " "
+                        else
+                            classes
+                    )
+                    ""
+    in
+        class listOfClassesAsString
 
 
 {-| Helper for encoding a list, works well with `justValueOrNull`.
@@ -177,14 +184,6 @@ updateList listOfThing thing identifyThing =
                     aThing
             )
             listOfThing
-
-
-{-| Tiny wrapper around `withClassIf` designed for applying the global error
-class on inputs.
--}
-withErrorClassIf : String -> Bool -> String
-withErrorClassIf permanentClasses highlightError =
-    withClassesIf permanentClasses "input-error-highlight" highlightError
 
 
 {-| Basic wrapper for adding a google icon.

@@ -3,6 +3,8 @@
 
 html, body, #main {
   @include full-screen-absolute();
+  font-family: 'Arvo', serif;
+  background-color: $color4;
 }
 
 .input-error-highlight {
