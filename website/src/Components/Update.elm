@@ -3,6 +3,7 @@ module Components.Update exposing (update, updateCacheIf)
 import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import DefaultServices.LocalStorage as LocalStorage
+import DefaultServices.Router as Router
 
 
 {-| Base Component Update.
@@ -32,6 +33,9 @@ updateCacheIf shouldCache msg model =
 
                 OnLoadModelFromLocalStorageSuccess model ->
                     ( model, Cmd.none )
+
+                SwitchView route ->
+                    ( model, Router.navigateTo route )
     in
         if shouldCache then
             ( newModel

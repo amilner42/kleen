@@ -7,6 +7,7 @@
 
 
 cd website;
+rm -rf ./elm-stuff/build-artifcats/;
 ./node_modules/.bin/webpack --watch &
 pid[0]=$!;
 cd -;

@@ -19,6 +19,8 @@ import Json.Decode.Pipeline exposing (decode, required, optional, hardcoded, nul
 -}
 type Route
     = MainView
+    | TutorialView
+    | GeneratorView
 
 
 {-| Auto generated cacheDecoder.
@@ -30,6 +32,12 @@ cacheDecoder =
             case string of
                 "MainView" ->
                     Decode.succeed MainView
+
+                "TutorialView" ->
+                    Decode.succeed TutorialView
+
+                "GeneratorView" ->
+                    Decode.succeed GeneratorView
 
                 _ ->
                     Decode.fail ("Not valid pattern for decoder to Route. Pattern: " ++ (toString string))
@@ -55,6 +63,8 @@ defaultRoute =
 -}
 urlParsers =
     [ UrlParser.format MainView (s "")
+    , UrlParser.format TutorialView (s "tutorial")
+    , UrlParser.format GeneratorView (s "generator")
     ]
 
 
@@ -65,3 +75,9 @@ toUrl route =
     case route of
         MainView ->
             Config.baseUrl ++ "#"
+
+        TutorialView ->
+            Config.baseUrl ++ "#tutorial"
+
+        GeneratorView ->
+            Config.baseUrl ++ "#generator"
