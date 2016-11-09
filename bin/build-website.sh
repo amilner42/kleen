@@ -9,4 +9,5 @@ cd website;
 rm -r ../docs;
 mv dist docs;
 mv docs ..;
+cp src/favicon.ico ../docs/;
 cd -;
