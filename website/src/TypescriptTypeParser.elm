@@ -15,6 +15,7 @@ import Combine
         , optional
         , between
         , rec
+        , sepBy1
         )
 import Combine.Infix exposing (..)
 import String
@@ -38,7 +39,7 @@ type TypeStructure
     = PrimitiveStructure String PrimitiveType
     | ArrayStructure String TypeStructureContent
     | ObjectStructure String (List TypeStructure)
-    | UnionStructure String (List TypeStructure)
+    | UnionStructure String (List TypeStructureContent)
     | ReferenceStructure String String
 
 
@@ -48,7 +49,7 @@ type TypeStructureContent
     = PrimitiveContent PrimitiveType
     | ArrayContent TypeStructureContent
     | ObjectContent (List TypeStructure)
-    | UnionContent (List TypeStructure)
+    | UnionContent (List TypeStructureContent)
     | ReferenceContent String
 
 
@@ -172,21 +173,48 @@ typeValueParser : Parser TypeStructureContent
 typeValueParser =
     rec
         (\() ->
-            (\( typeContent, capturedArrayBrackets ) ->
-                -- Handling multiple array brackets in this foldl.
-                List.foldl
-                    (\arrayBrackets previousTypeContent ->
-                        ArrayContent previousTypeContent
-                    )
-                    typeContent
-                    capturedArrayBrackets
-            )
-                <$> ((succeed (,))
-                        <*> (primitiveValueParser
-                                <|> interfaceValueParser
-                                <|> referenceValueParser
+            (\listOfTypes ->
+                let
+                    typesWithArraysParsed =
+                        List.map
+                            (\( typeContent, capturedArrayBrackets ) ->
+                                -- Handling multiple array brackets in this foldl.
+                                List.foldl
+                                    (\arrayBrackets previousTypeContent ->
+                                        ArrayContent previousTypeContent
+                                    )
+                                    typeContent
+                                    capturedArrayBrackets
                             )
-                        <*> (many (whitespace *> string "[]"))
+                            listOfTypes
+
+                    numberOfTypes =
+                        List.length typesWithArraysParsed
+
+                    impossibleCase =
+                        UnionContent []
+                in
+                    if numberOfTypes == 0 then
+                        impossibleCase
+                    else if numberOfTypes == 1 then
+                        case List.head typesWithArraysParsed of
+                            Nothing ->
+                                impossibleCase
+
+                            Just singleType ->
+                                singleType
+                    else
+                        UnionContent typesWithArraysParsed
+            )
+                <$> (sepBy1
+                        (whitespace *> (string "|") <* whitespace)
+                        ((succeed (,))
+                            <*> (primitiveValueParser
+                                    <|> interfaceValueParser
+                                    <|> referenceValueParser
+                                )
+                            <*> (many (whitespace *> string "[]"))
+                        )
                     )
         )
 
