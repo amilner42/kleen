@@ -121,42 +121,7 @@ primitiveValueParser =
         )
 
 
-{-| -}
-parseArray : Parser TypeStructureContent
-parseArray =
-    rec
-        (\() ->
-            -- This will catch arrays of primitives, arrays of someName, but not
-            -- arrarys of objects / arrays of union types...Do to lang bugs, its
-            -- a work in progress for figuring out a convenient "hack".
-            whitespace
-                *> regex "[a-zA-Z]*"
-                <* whitespace
-                <* string "[]"
-                `andThen`
-                    (\charactersBeforeArrayBrackets ->
-                        case (parse typeValueParser charactersBeforeArrayBrackets) of
-                            ( Ok results, _ ) ->
-                                succeed results
-
-                            ( Err err, _ ) ->
-                                fail [ "Not a valid type prior to array brackets." ]
-                    )
-        )
-
-
-{-| Parses a arrayType.
--}
-arrayValueParser : Parser TypeStructureContent
-arrayValueParser =
-    rec
-        (\() ->
-            ArrayContent
-                <$> parseArray
-        )
-
-
-{-| Parses the
+{-| Parses the "value" of an interface, the part between the braces.
 -}
 interfaceValueParser : Parser TypeStructureContent
 interfaceValueParser =
@@ -167,15 +132,30 @@ interfaceValueParser =
         )
 
 
+{-| Parses the "value" of a type, the part after the `=`.
+-}
 typeValueParser : Parser TypeStructureContent
 typeValueParser =
     rec
         (\() ->
-            arrayValueParser
-                <|> primitiveValueParser
+            (\( typeContent, capturedArrayBrackets ) ->
+                -- Handling multiple array brackets in this foldl.
+                List.foldl
+                    (\arrayBrackets previousTypeContent ->
+                        ArrayContent previousTypeContent
+                    )
+                    typeContent
+                    capturedArrayBrackets
+            )
+                <$> ((succeed (,))
+                        <*> (primitiveValueParser <|> interfaceValueParser)
+                        <*> (many (whitespace *> string "[]"))
+                    )
         )
 
 
+{-| Given a name and a content, returns the appropriate TypeStructure.
+-}
 nameAndContentToStructure : String -> TypeStructureContent -> TypeStructure
 nameAndContentToStructure name content =
     case content of
@@ -192,7 +172,8 @@ nameAndContentToStructure name content =
             UnionStructure name unionContent
 
 
-{-| A `type` (typescript type) parser.
+{-| A `type` (typescript type) parser. This is one of the two things allowed
+at the top level (`interfaceParser` covers the other case).
 -}
 typeParser : Parser TypeStructure
 typeParser =
@@ -202,36 +183,10 @@ typeParser =
                 <*> (typeNameParser <* string "=" <* whitespace)
                 <*> typeValueParser
                 <* whitespace
-                <* string ";"
+                <* (optional "" (string ";"))
                 <* whitespace
             )
         )
-
-
-{-| The parser for typescript types.
--}
-typescriptTypeParser : Parser (List TypeStructure)
-typescriptTypeParser =
-    rec
-        (\() ->
-            many <|
-                whitespace
-                    *> interfaceParser
-                    <* whitespace
-        )
-
-
-{-| Parses the typescript from the input and returns the output in `kleen`
-format, or an error if the parser detected issues with the input.
--}
-parseTypes : String -> Result String String
-parseTypes input =
-    case parse typescriptTypeParser input of
-        ( Ok results, _ ) ->
-            Ok <| String.join "\n\n" (List.map typeStructureToKleen results)
-
-        ( Err ms, cx ) ->
-            Err ("parse error: " ++ (toString ms) ++ ", " ++ (toString cx))
 
 
 {-| Parses the part of the typescript interface between the braces. Input must
@@ -288,7 +243,38 @@ interfaceParser =
             (succeed ObjectStructure)
                 <*> interfaceNameParser
                 <*> interfaceJSONBlockParser
+                <* whitespace
+                <* (optional "" (string ";"))
+                <* whitespace
         )
+
+
+{-| The parser for typescript types, the only public-facing method from this
+library. At the top level we can only expect `many` interfaces or types defined
+hence that's exactly what this parser looks for.
+-}
+typescriptTypeParser : Parser (List TypeStructure)
+typescriptTypeParser =
+    rec
+        (\() ->
+            many <|
+                whitespace
+                    *> (interfaceParser <|> typeParser)
+                    <* whitespace
+        )
+
+
+{-| Parses the typescript from the input and returns the output in `kleen`
+format, or an error if the parser detected issues with the input.
+-}
+parseTypes : String -> Result String String
+parseTypes input =
+    case parse typescriptTypeParser input of
+        ( Ok results, _ ) ->
+            Ok <| String.join "\n\n" (List.map typeStructureToKleen results)
+
+        ( Err ms, cx ) ->
+            Err ("parse error: " ++ (toString ms) ++ ", " ++ (toString cx))
 
 
 {-| Converts a type structure to a string.
