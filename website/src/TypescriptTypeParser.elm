@@ -31,12 +31,15 @@ type PrimitiveType
 {-| The typescript structures we allow (from `kleen`). The first string is the
 name of the structure, because structures may reference each other, and the
 2nd param is what's needed to define that structures type.
+
+NOTE: A `ReferenceStructure` is simply a type referencing another type.
 -}
 type TypeStructure
     = PrimitiveStructure String PrimitiveType
     | ArrayStructure String TypeStructureContent
     | ObjectStructure String (List TypeStructure)
     | UnionStructure String (List TypeStructure)
+    | ReferenceStructure String String
 
 
 {-| The content is what's required to build a type.
@@ -46,6 +49,7 @@ type TypeStructureContent
     | ArrayContent TypeStructureContent
     | ObjectContent (List TypeStructure)
     | UnionContent (List TypeStructure)
+    | ReferenceContent String
 
 
 {-| Parser for any form of whitespace.
@@ -97,7 +101,37 @@ parsePrimitive =
         )
 
 
-{-| Parses the
+{-| Parses a reference type, making sure the name is not the name of a
+primitive type. Does not check for the user using names that avoid with TS
+keywords, that's the user's responsibility.
+-}
+parseReference : Parser String
+parseReference =
+    rec
+        (\() ->
+            nameParser
+                `andThen`
+                    (\name ->
+                        if List.member name [ "string", "boolean", "number" ] then
+                            fail [ "Reference name cannot be a primitive" ]
+                        else
+                            succeed name
+                    )
+        )
+
+
+{-| Parses a reference into a `TypeStructureContent`.
+-}
+referenceValueParser : Parser TypeStructureContent
+referenceValueParser =
+    rec
+        (\() ->
+            (succeed ReferenceContent)
+                <*> parseReference
+        )
+
+
+{-| Parses the `name` of the top level `type`.
 -}
 typeNameParser : Parser String
 typeNameParser =
@@ -148,7 +182,10 @@ typeValueParser =
                     capturedArrayBrackets
             )
                 <$> ((succeed (,))
-                        <*> (primitiveValueParser <|> interfaceValueParser)
+                        <*> (primitiveValueParser
+                                <|> interfaceValueParser
+                                <|> referenceValueParser
+                            )
                         <*> (many (whitespace *> string "[]"))
                     )
         )
@@ -170,6 +207,9 @@ nameAndContentToStructure name content =
 
         UnionContent unionContent ->
             UnionStructure name unionContent
+
+        ReferenceContent referencing ->
+            ReferenceStructure name referencing
 
 
 {-| A `type` (typescript type) parser. This is one of the two things allowed
@@ -292,4 +332,7 @@ typeStructureToKleen ts =
             name
 
         UnionStructure name _ ->
+            name
+
+        ReferenceStructure name _ ->
             name
