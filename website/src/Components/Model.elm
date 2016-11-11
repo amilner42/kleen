@@ -11,6 +11,8 @@ import Models.Route as Route
 type alias Model =
     { route : Route.Route
     , generatorInput : String
+    , generatorOutput : String
+    , typeCompilerError : Bool
     }
 
 
@@ -21,6 +23,8 @@ cacheEncoder record =
     Encode.object
         [ ( "route", Route.cacheEncoder record.route )
         , ( "generatorInput", Encode.string record.generatorInput )
+        , ( "generatorOutput", Encode.string record.generatorOutput )
+        , ( "typeCompilerError", Encode.bool record.typeCompilerError )
         ]
 
 
@@ -31,3 +35,5 @@ cacheDecoder =
     decode Model
         |> required "route" Route.cacheDecoder
         |> required "generatorInput" Decode.string
+        |> required "generatorOutput" Decode.string
+        |> required "typeCompilerError" Decode.bool

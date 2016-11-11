@@ -4,6 +4,7 @@ import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import DefaultServices.LocalStorage as LocalStorage
 import DefaultServices.Router as Router
+import TypescriptTypeParser as TTP
 
 
 {-| Base Component Update.
@@ -40,7 +41,20 @@ updateCacheIf shouldCache msg model =
                 OnGeneratorInput newGeneratorInput ->
                     let
                         newModel =
-                            { model | generatorInput = newGeneratorInput }
+                            case TTP.parseTypes newGeneratorInput of
+                                Ok newGeneratorOutput ->
+                                    { model
+                                        | generatorInput = newGeneratorInput
+                                        , generatorOutput = newGeneratorOutput
+                                        , typeCompilerError = False
+                                    }
+
+                                Err error ->
+                                    { model
+                                        | generatorInput = newGeneratorInput
+                                        , generatorOutput = error
+                                        , typeCompilerError = True
+                                    }
                     in
                         ( newModel, Cmd.none )
     in
