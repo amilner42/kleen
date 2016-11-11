@@ -14,6 +14,7 @@ import Combine
         , succeed
         , optional
         , between
+        , rec
         )
 import Combine.Infix exposing (..)
 import String
@@ -51,88 +52,128 @@ type TypeStructureContent
 -}
 whitespace : Parser String
 whitespace =
-    regex "[ \t\x0D\n]*"
+    rec
+        (\() ->
+            regex "[ \t\x0D\n]*"
+        )
 
 
 {-| Parses a name, at least 1 char of a-Z letters.
 -}
 nameParser : Parser String
 nameParser =
-    regex "[a-zA-Z]+"
+    rec
+        (\() ->
+            regex "[a-zA-Z]+"
+        )
 
 
 {-| Parses a primtive.
 -}
 parsePrimitive : Parser PrimitiveType
 parsePrimitive =
-    choice
-        [ string "string"
-        , string "number"
-        , string "boolean"
-        ]
-        `andThen`
-            (\primitiveType ->
-                case primitiveType of
-                    "string" ->
-                        succeed StringType
+    rec
+        (\() ->
+            choice
+                [ string "string"
+                , string "number"
+                , string "boolean"
+                ]
+                `andThen`
+                    (\primitiveType ->
+                        case primitiveType of
+                            "string" ->
+                                succeed StringType
 
-                    "number" ->
-                        succeed NumberType
+                            "number" ->
+                                succeed NumberType
 
-                    "boolean" ->
-                        succeed BooleanType
+                            "boolean" ->
+                                succeed BooleanType
 
-                    _ ->
-                        fail [ "That's not a primtive" ]
-            )
+                            _ ->
+                                fail [ "That's not a primtive" ]
+                    )
+        )
 
 
 {-| Parses the
 -}
 typeNameParser : Parser String
 typeNameParser =
-    string "type"
-        *> whitespace
-        *> nameParser
-        <* whitespace
+    rec
+        (\() ->
+            string "type"
+                *> whitespace
+                *> nameParser
+                <* whitespace
+        )
 
 
 {-| Parses a primitive type into a `TypeStructureContent`.
 -}
 primitiveValueParser : Parser TypeStructureContent
 primitiveValueParser =
-    (succeed PrimitiveContent)
-        <*> parsePrimitive
+    rec
+        (\() ->
+            (succeed PrimitiveContent)
+                <*> parsePrimitive
+        )
 
 
 {-| -}
 parseArray : Parser TypeStructureContent
 parseArray =
-    typeValueParser
-        <* whitespace
-        <* string "[]"
+    rec
+        (\() ->
+            -- This will catch arrays of primitives, arrays of someName, but not
+            -- arrarys of objects / arrays of union types...Do to lang bugs, its
+            -- a work in progress for figuring out a convenient "hack".
+            whitespace
+                *> regex "[a-zA-Z]*"
+                <* whitespace
+                <* string "[]"
+                `andThen`
+                    (\charactersBeforeArrayBrackets ->
+                        case (parse typeValueParser charactersBeforeArrayBrackets) of
+                            ( Ok results, _ ) ->
+                                succeed results
+
+                            ( Err err, _ ) ->
+                                fail [ "Not a valid type prior to array brackets." ]
+                    )
+        )
 
 
 {-| Parses a arrayType.
 -}
 arrayValueParser : Parser TypeStructureContent
 arrayValueParser =
-    ArrayContent
-        <$> parseArray
+    rec
+        (\() ->
+            ArrayContent
+                <$> parseArray
+        )
 
 
 {-| Parses the
 -}
 interfaceValueParser : Parser TypeStructureContent
 interfaceValueParser =
-    (succeed ObjectContent)
-        <*> interfaceJSONBlockParser
+    rec
+        (\() ->
+            (succeed ObjectContent)
+                <*> interfaceJSONBlockParser
+        )
 
 
 typeValueParser : Parser TypeStructureContent
 typeValueParser =
-    arrayValueParser
-        <|> primitiveValueParser
+    rec
+        (\() ->
+            arrayValueParser
+                <|> primitiveValueParser
+        )
 
 
 nameAndContentToStructure : String -> TypeStructureContent -> TypeStructure
@@ -155,23 +196,29 @@ nameAndContentToStructure name content =
 -}
 typeParser : Parser TypeStructure
 typeParser =
-    ((succeed nameAndContentToStructure)
-        <*> (typeNameParser <* string "=" <* whitespace)
-        <*> typeValueParser
-        <* whitespace
-        <* string ";"
-        <* whitespace
-    )
+    rec
+        (\() ->
+            ((succeed nameAndContentToStructure)
+                <*> (typeNameParser <* string "=" <* whitespace)
+                <*> typeValueParser
+                <* whitespace
+                <* string ";"
+                <* whitespace
+            )
+        )
 
 
 {-| The parser for typescript types.
 -}
 typescriptTypeParser : Parser (List TypeStructure)
 typescriptTypeParser =
-    many <|
-        whitespace
-            *> interfaceParser
-            <* whitespace
+    rec
+        (\() ->
+            many <|
+                whitespace
+                    *> interfaceParser
+                    <* whitespace
+        )
 
 
 {-| Parses the typescript from the input and returns the output in `kleen`
@@ -209,10 +256,13 @@ interfaceJSONBlockParser =
                 <*> getPropertyName
                 <*> getPropertyTypeStructure
     in
-        braces <|
-            whitespace
-                *> many getSingleProperty
-                <* whitespace
+        rec
+            (\() ->
+                braces <|
+                    whitespace
+                        *> many getSingleProperty
+                        <* whitespace
+            )
 
 
 {-| Parsses the name from an interface, then consumes all spaces after the name,
@@ -220,19 +270,25 @@ ideally stopping at an open brace for the `interfaceJSONBlockParser`.
 -}
 interfaceNameParser : Parser String
 interfaceNameParser =
-    string "interface"
-        *> whitespace
-        *> nameParser
-        <* whitespace
+    rec
+        (\() ->
+            string "interface"
+                *> whitespace
+                *> nameParser
+                <* whitespace
+        )
 
 
 {-| Parses a typescript interface into a `TypeStructure`.
 -}
 interfaceParser : Parser TypeStructure
 interfaceParser =
-    (succeed ObjectStructure)
-        <*> interfaceNameParser
-        <*> interfaceJSONBlockParser
+    rec
+        (\() ->
+            (succeed ObjectStructure)
+                <*> interfaceNameParser
+                <*> interfaceJSONBlockParser
+        )
 
 
 {-| Converts a type structure to a string.
