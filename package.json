@@ -24,7 +24,7 @@
   "bugs": {
     "url": "https://github.com/amilner42/kleen/issues"
   },
-  "homepage": "https://github.com/amilner42/kleen#readme",
+  "homepage": "https://amilner42.github.io/kleen",
   "dependencies": {},
   "devDependencies": {
     "babel-cli": "^6.18.0",
