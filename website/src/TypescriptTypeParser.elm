@@ -19,6 +19,8 @@ import Combine
         )
 import Combine.Infix exposing (..)
 import String
+import Formatting as F exposing ((<>))
+import String
 
 
 {-| Primitive Structure.
@@ -339,28 +341,168 @@ parseTypes : String -> Result String String
 parseTypes input =
     case parse typescriptTypeParser input of
         ( Ok results, _ ) ->
-            Ok <| String.join "\n\n" (List.map typeStructureToKleen results)
+            Ok <|
+                String.join
+                    "\n\n"
+                    (List.map
+                        typeStructureToKleen
+                        results
+                    )
 
         ( Err ms, cx ) ->
             Err ("parse error: " ++ (toString ms) ++ ", " ++ (toString cx))
 
 
-{-| Converts a type structure to a string.
+{-| Converts a type structure (our AST from parsing) to a string which will be
+the JSON Kleen structure, that way you can copy paste this and bam you have
+runtime validation.
 -}
 typeStructureToKleen : TypeStructure -> String
 typeStructureToKleen ts =
-    case ts of
-        PrimitiveStructure name _ ->
-            name
+    let
+        {- A single newline, used for readibility. -}
+        newLine =
+            F.s "\n"
 
-        ObjectStructure name _ ->
-            name
+        {- A single tab. -}
+        tab =
+            F.s "    "
 
-        ArrayStructure name _ ->
-            name
+        tabString =
+            "    "
 
-        UnionStructure name _ ->
-            name
+        quotedString =
+            F.s "\"" <> F.string <> F.s "\""
 
-        ReferenceStructure name _ ->
-            name
+        {- Creates a tab-chain `numberOfTabs` long. -}
+        tabChain numberOfTabs =
+            List.repeat numberOfTabs tab
+                |> List.foldl
+                    (\aTab tabChain ->
+                        tabChain <> aTab
+                    )
+                    (F.s "")
+
+        tabStringChain numberOfTabs =
+            List.repeat numberOfTabs tabString
+                |> String.join ""
+
+        {- Eg. Turns interface named "bla" to "blaSchema". -}
+        referenceNamePostFix =
+            "Schema"
+
+        {- Internal print structure, doesn't worry about the name of top level
+           objets (so it can be nested) and also keeps an accumulator handy
+           for keeping track of the current tab level.
+        -}
+        printStructure tabLevel ts =
+            let
+                indent0 =
+                    tabChain <| tabLevel
+
+                indent1 =
+                    tabChain <| tabLevel + 1
+
+                indent2 =
+                    tabChain <| tabLevel + 2
+            in
+                case ts of
+                    PrimitiveStructure name primitiveType ->
+                        let
+                            primitiveStructurePrinter =
+                                (F.s "{" <> newLine)
+                                    <> (indent1 <> F.s "kindOfType: kleen.kindOfType.primitive," <> newLine)
+                                    <> (indent1 <> F.s "kindOfPrimitive: " <> (F.premap primitiveTypeToString F.string) <> newLine)
+                                    <> (indent0 <> F.s "}")
+
+                            primitiveTypeToString primitiveType =
+                                case primitiveType of
+                                    BooleanType ->
+                                        "kleen.kindOfPrimitive.boolean"
+
+                                    NumberType ->
+                                        "kleen.kindOfPrimitive.number"
+
+                                    StringType ->
+                                        "kleen.kindOfPrimitive.string"
+                        in
+                            F.print primitiveStructurePrinter primitiveType
+
+                    ObjectStructure name listOfStructures ->
+                        let
+                            objectStructurePrinter =
+                                (F.s "{" <> newLine)
+                                    <> (indent1 <> F.s "kindOfType: kleen.kindOfType.object," <> newLine)
+                                    <> (indent1 <> F.s "properties: {" <> newLine)
+                                    <> (F.premap objectPropertiesToString F.string <> newLine)
+                                    <> (indent1 <> F.s "}" <> newLine)
+                                    <> (indent0 <> F.s "}")
+
+                            propertyToString propertyTypeStructure =
+                                let
+                                    name =
+                                        case propertyTypeStructure of
+                                            PrimitiveStructure name _ ->
+                                                name
+
+                                            ObjectStructure name _ ->
+                                                name
+
+                                            ArrayStructure name _ ->
+                                                name
+
+                                            UnionStructure name _ ->
+                                                name
+
+                                            ReferenceStructure name _ ->
+                                                name
+
+                                    propertyPrinter =
+                                        indent2 <> quotedString <> F.s ": " <> F.string <> F.s ","
+                                in
+                                    F.print propertyPrinter name (printStructure (tabLevel + 2) propertyTypeStructure)
+
+                            objectPropertiesToString =
+                                (List.map propertyToString) >> String.join "\n"
+                        in
+                            F.print objectStructurePrinter listOfStructures
+
+                    ArrayStructure name typeStructureContent ->
+                        let
+                            {- We need the `typeStructure` for recursion even though
+                               the name won't be used.
+                            -}
+                            typeStructure =
+                                nameAndContentToStructure name typeStructureContent
+
+                            arrayStructurePrinter =
+                                (F.s "{" <> newLine)
+                                    <> (indent1 <> F.s "kindOfType: kleen.kindOfType.array," <> newLine)
+                                    <> (indent1 <> F.s "elementType: " <> F.premap (printStructure <| tabLevel + 1) F.string <> newLine)
+                                    <> (indent0 <> F.s "}")
+                        in
+                            F.print arrayStructurePrinter typeStructure
+
+                    UnionStructure name typeStructureContents ->
+                        let
+                            typeStructureToString ts =
+                                (tabStringChain (tabLevel + 2)) ++ (printStructure (tabLevel + 2) ts) ++ ",\n"
+
+                            typeStructureContentsToString =
+                                (List.map ((nameAndContentToStructure "") >> typeStructureToString))
+                                    >> String.join ""
+
+                            unionStructurePrinter =
+                                (F.s "{" <> newLine)
+                                    <> (indent1 <> F.s "kindOfType: kleen.kindOfType.union" <> newLine)
+                                    <> (indent1 <> F.s "types: [" <> newLine)
+                                    <> (F.premap typeStructureContentsToString F.string)
+                                    <> (indent1 <> F.s "]" <> newLine)
+                                    <> (indent0 <> F.s "}")
+                        in
+                            F.print unionStructurePrinter typeStructureContents
+
+                    ReferenceStructure name referenceName ->
+                        referenceName ++ referenceNamePostFix
+    in
+        printStructure 0 ts

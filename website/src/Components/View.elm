@@ -2,7 +2,7 @@ module Components.View exposing (view)
 
 import Html exposing (Html, span, div, text, a, textarea)
 import Html.Events exposing (onClick, onInput)
-import Html.Attributes exposing (class, href, placeholder, value)
+import Html.Attributes exposing (class, href, placeholder, value, spellcheck)
 import Components.Messages exposing (Msg(..))
 import Components.Model exposing (Model)
 import Models.Route as Route
@@ -90,6 +90,7 @@ generatorView model =
             , textarea
                 [ class "output-text-area"
                 , placeholder "Get Runtime Validation Structures"
+                , spellcheck False
                 , value model.generatorOutput
                 ]
                 []
