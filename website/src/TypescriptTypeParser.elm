@@ -353,6 +353,27 @@ parseTypes input =
             Err ("parse error: " ++ (toString ms) ++ ", " ++ (toString cx))
 
 
+{-| Gets the name of a type structure.
+-}
+getNameFromTypeStructure : TypeStructure -> String
+getNameFromTypeStructure typeStructure =
+    case typeStructure of
+        PrimitiveStructure name _ ->
+            name
+
+        ObjectStructure name _ ->
+            name
+
+        ArrayStructure name _ ->
+            name
+
+        UnionStructure name _ ->
+            name
+
+        ReferenceStructure name _ ->
+            name
+
+
 {-| Converts a type structure (our AST from parsing) to a string which will be
 the JSON Kleen structure, that way you can copy paste this and bam you have
 runtime validation.
@@ -441,21 +462,7 @@ typeStructureToKleen ts =
                             propertyToString propertyTypeStructure =
                                 let
                                     name =
-                                        case propertyTypeStructure of
-                                            PrimitiveStructure name _ ->
-                                                name
-
-                                            ObjectStructure name _ ->
-                                                name
-
-                                            ArrayStructure name _ ->
-                                                name
-
-                                            UnionStructure name _ ->
-                                                name
-
-                                            ReferenceStructure name _ ->
-                                                name
+                                        getNameFromTypeStructure propertyTypeStructure
 
                                     propertyPrinter =
                                         indent2 <> quotedString <> F.s ": " <> F.string <> F.s ","
@@ -505,4 +512,4 @@ typeStructureToKleen ts =
                     ReferenceStructure name referenceName ->
                         referenceName ++ referenceNamePostFix
     in
-        printStructure 0 ts
+        "const " ++ (getNameFromTypeStructure ts) ++ referenceNamePostFix ++ " = " ++ (printStructure 0 ts) ++ ";"
