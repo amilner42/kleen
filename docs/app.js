@@ -6923,7 +6923,7 @@
 				decoder);
 		});
 
-	var _amilner42$kleen$Config$baseUrl = 'http://localhost:8080/';
+	var _amilner42$kleen$Config$baseUrl = 'https://amilner42.github.io/kleen/';
 
 	var _evancz$url_parser$UrlParser$oneOfHelp = F3(
 		function (choices, chunks, formatter) {

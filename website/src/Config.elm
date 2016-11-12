@@ -8,4 +8,4 @@ module Config exposing (baseUrl)
 
 baseUrl : String
 baseUrl =
-    "http://localhost:8080/"
+    "https://amilner42.github.io/kleen/"
