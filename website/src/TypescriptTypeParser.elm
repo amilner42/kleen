@@ -71,7 +71,7 @@ nameParser : Parser String
 nameParser =
     rec
         (\() ->
-            regex "[a-zA-Z]+"
+            regex "[a-zA-Z_\\$]+"
         )
 
 

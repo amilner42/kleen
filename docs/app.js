@@ -11089,7 +11089,7 @@
 	var _amilner42$kleen$TypescriptTypeParser$nameParser = _Bogdanp$elm_combine$Combine$rec(
 		function (_p1) {
 			var _p2 = _p1;
-			return _Bogdanp$elm_combine$Combine$regex('[a-zA-Z]+');
+			return _Bogdanp$elm_combine$Combine$regex('[a-zA-Z_\\$]+');
 		});
 	var _amilner42$kleen$TypescriptTypeParser$parseReference = _Bogdanp$elm_combine$Combine$rec(
 		function (_p3) {
