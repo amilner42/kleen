@@ -1,0 +1,22 @@
+{
+    "version": "0.0.1",
+    "summary": "Website for kleen npm library",
+    "repository": "https://github.com/amilner42/kleen.git",
+    "license": "BSD",
+    "source-directories": [
+        "src",
+        "dist"
+    ],
+    "exposed-modules": [],
+    "dependencies": {
+        "Bogdanp/elm-combine": "2.2.1 <= v < 3.0.0",
+        "NoRedInk/elm-decode-pipeline": "2.0.0 <= v < 3.0.0",
+        "elm-lang/core": "4.0.5 <= v < 5.0.0",
+        "elm-lang/html": "1.1.0 <= v < 2.0.0",
+        "elm-lang/navigation": "1.0.0 <= v < 2.0.0",
+        "evancz/elm-http": "3.0.1 <= v < 4.0.0",
+        "evancz/url-parser": "1.0.0 <= v < 2.0.0",
+        "krisajenkins/formatting": "4.0.5 <= v < 5.0.0"
+    },
+    "elm-version": "0.17.0 <= v < 0.18.0"
+}

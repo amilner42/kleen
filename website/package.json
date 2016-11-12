@@ -1,0 +1,33 @@
+{
+  "name": "kleen-website",
+  "version": "0.0.0",
+  "description": "A website documenting the kleen library as well as providing code generation features!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amilner42/kleen.git"
+  },
+  "author": "Arie Milner",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/amilner42/kleen/issues"
+  },
+  "homepage": "https://github.com/amilner42/kleen#readme",
+  "devDependencies": {
+    "copy-webpack-plugin": "^4.0.0",
+    "css-loader": "^0.25.0",
+    "elm": "^0.17.1",
+    "elm-webpack-loader": "^3.0.6",
+    "extract-text-webpack-plugin": "^1.0.1",
+    "file-loader": "^0.9.0",
+    "node-sass": "^3.11.2",
+    "node-static": "^0.7.9",
+    "sass-loader": "^4.0.2",
+    "style-loader": "^0.13.1",
+    "webpack": "^1.13.3"
+  },
+  "dependencies": {}
+}
