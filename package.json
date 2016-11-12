@@ -1,6 +1,6 @@
 {
   "name": "kleen",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Simple runtime data validation",
   "main": "lib/main.js",
   "files": [
@@ -24,7 +24,7 @@
   "bugs": {
     "url": "https://github.com/amilner42/kleen/issues"
   },
-  "homepage": "https://github.com/amilner42/kleen#readme",
+  "homepage": "https://amilner42.github.io/kleen",
   "dependencies": {},
   "devDependencies": {
     "babel-cli": "^6.18.0",
