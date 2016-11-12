@@ -1,12 +1,22 @@
-# Kleen
+# [Kleen](https://amilner42.github.io/kleen)
 
-A typescript library for *simple* data validation. Simplicity is the main goal
-behind the design of the API, hence why only a single method is exposed:
-`validModel`. You should be able to get up and running and be productive within
-10 - 15 minutes. The main idea is that the shape of our data
-validation should be the same shape as the data we are validating, making our
-code more readable by avoiding the imperative mess we often get when validating
-our data models as well as keeping our code DRY.
+A typescript library which provides a very thin layer over the typescript
+type system allowing you to extend the compile-time guarantees to run-time.
+Using the [code generator](https://amilner42.github.io/kleen/#generator) you
+can plug in some typescript `type`s/`interface`s from your project and you will
+be given the objects to use at runtime! The objects you are given from the
+generator cover the type validation for you completely, more importantly though,
+they allow you to plug in `restriction`s (either sync/async) at any level making
+it easy for you handle the data validation.
+
+In short, this library will:
+  - Improve your runtime validation (do you check ALL user generated input?)
+  - Save you time (plug in interfaces, get auto-generated type validation objects)
+  - Handle all your async for you, the order in which it gets run etc...
+  - Vastly improve the readability of your code.
+
+It's also designed to be so simple that you can learn the entire library
+(every corner of it) in 15 minutes. Guaranteed or you get your money back.
 
 
 ### Download
@@ -14,6 +24,19 @@ our data models as well as keeping our code DRY.
 `npm install kleen --save`
 
 This is a strongly-typed npm package, so typings work out of the box.
+
+
+### Website
+
+[Kleen](https://amilner42.github.io/kleen)
+
+You _probably_ should head to the website if you're just using the library,
+there is a full tutorial on the website and also a code generator. If you're
+planning on developing, then stay here, you're in the right place.
+
+
+NOTE: I'm currently in the process of moving the tutorial to the website, so
+for now you'll have to read the tutorial in this README.
 
 
 ### Examples
