@@ -11822,39 +11822,113 @@
 						]))
 				]));
 	};
-	var _amilner42$kleen$Components_View$subBar = A2(
-		_elm_lang$html$Html$div,
-		_elm_lang$core$Native_List.fromArray(
-			[
-				_amilner42$kleen$DefaultServices_Util$conditionalClasses(
-				_elm_lang$core$Native_List.fromArray(
-					[
-						{ctor: '_Tuple2', _0: true, _1: 'sub-bar'}
-					]))
-			]),
-		_elm_lang$core$Native_List.fromArray(
-			[
-				A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('sub-bar-title')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text('Runtime Validation')
-					])),
-				A2(
-				_elm_lang$html$Html$div,
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html_Attributes$class('sub-bar-sub-title')
-					]),
-				_elm_lang$core$Native_List.fromArray(
-					[
-						_elm_lang$html$Html$text('Clean. Simple. Maintainable.')
-					]))
-			]));
+	var _amilner42$kleen$Components_View$subBar = function (route) {
+		var _p0 = route;
+		switch (_p0.ctor) {
+			case 'MainView':
+				return A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_amilner42$kleen$DefaultServices_Util$conditionalClasses(
+							_elm_lang$core$Native_List.fromArray(
+								[
+									{ctor: '_Tuple2', _0: true, _1: 'sub-bar'}
+								]))
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('sub-bar-title')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('Validate Everything')
+								])),
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('sub-bar-sub-title')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('Trust No One')
+								]))
+						]));
+			case 'TutorialView':
+				return A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_amilner42$kleen$DefaultServices_Util$conditionalClasses(
+							_elm_lang$core$Native_List.fromArray(
+								[
+									{ctor: '_Tuple2', _0: true, _1: 'sub-bar'}
+								]))
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('sub-bar-title')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('Document Everything')
+								])),
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('sub-bar-sub-title')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('No User Left Behind')
+								]))
+						]));
+			default:
+				return A2(
+					_elm_lang$html$Html$div,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_amilner42$kleen$DefaultServices_Util$conditionalClasses(
+							_elm_lang$core$Native_List.fromArray(
+								[
+									{ctor: '_Tuple2', _0: true, _1: 'sub-bar'}
+								]))
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('sub-bar-title')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('Automate Everything')
+								])),
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('sub-bar-sub-title')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('Laziness Leads to Greatness')
+								]))
+						]));
+		}
+	};
 	var _amilner42$kleen$Components_View$navBar = function (route) {
 		return A2(
 			_elm_lang$html$Html$div,
@@ -11956,8 +12030,8 @@
 	};
 	var _amilner42$kleen$Components_View$view = function (model) {
 		var pageForRoute = function () {
-			var _p0 = model.route;
-			switch (_p0.ctor) {
+			var _p1 = model.route;
+			switch (_p1.ctor) {
 				case 'MainView':
 					return _amilner42$kleen$Components_View$mainView(model);
 				case 'TutorialView':
@@ -11977,7 +12051,7 @@
 				_elm_lang$core$Native_List.fromArray(
 					[
 						_amilner42$kleen$Components_View$navBar(model.route),
-						_amilner42$kleen$Components_View$subBar,
+						_amilner42$kleen$Components_View$subBar(model.route),
 						pageForRoute
 					])));
 	};

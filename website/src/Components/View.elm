@@ -56,20 +56,50 @@ navBar route =
 
 {-| Subbar beneath navbar.
 -}
-subBar : Html msg
-subBar =
-    div
-        [ conditionalClasses
-            [ ( True, "sub-bar" )
-            ]
-        ]
-        [ div
-            [ class "sub-bar-title" ]
-            [ text "Runtime Validation" ]
-        , div
-            [ class "sub-bar-sub-title" ]
-            [ text "Clean. Simple. Maintainable." ]
-        ]
+subBar : Route.Route -> Html msg
+subBar route =
+    case route of
+        Route.MainView ->
+            div
+                [ conditionalClasses
+                    [ ( True, "sub-bar" )
+                    ]
+                ]
+                [ div
+                    [ class "sub-bar-title" ]
+                    [ text "Validate Everything" ]
+                , div
+                    [ class "sub-bar-sub-title" ]
+                    [ text "Trust No One" ]
+                ]
+
+        Route.TutorialView ->
+            div
+                [ conditionalClasses
+                    [ ( True, "sub-bar" )
+                    ]
+                ]
+                [ div
+                    [ class "sub-bar-title" ]
+                    [ text "Document Everything" ]
+                , div
+                    [ class "sub-bar-sub-title" ]
+                    [ text "No User Left Behind" ]
+                ]
+
+        Route.GeneratorView ->
+            div
+                [ conditionalClasses
+                    [ ( True, "sub-bar" )
+                    ]
+                ]
+                [ div
+                    [ class "sub-bar-title" ]
+                    [ text "Automate Everything" ]
+                , div
+                    [ class "sub-bar-sub-title" ]
+                    [ text "Laziness Leads to Greatness" ]
+                ]
 
 
 {-| The view for auto generating type validation structures.
@@ -136,6 +166,6 @@ view model =
             div
                 []
                 [ navBar model.route
-                , subBar
+                , subBar model.route
                 , pageForRoute
                 ]
