@@ -12,6 +12,7 @@ import Combine
         , choice
         , fail
         , succeed
+        , end
         , optional
         , between
         , rec
@@ -211,9 +212,9 @@ typeValueParser =
                 <$> (sepBy1
                         (whitespace *> (string "|") <* whitespace)
                         ((succeed (,))
-                            <*> (primitiveValueParser
+                            <*> (referenceValueParser
                                     <|> interfaceValueParser
-                                    <|> referenceValueParser
+                                    <|> primitiveValueParser
                                 )
                             <*> (many (whitespace *> string "[]"))
                         )
@@ -327,10 +328,12 @@ typescriptTypeParser : Parser (List TypeStructure)
 typescriptTypeParser =
     rec
         (\() ->
-            many <|
+            (many <|
                 whitespace
                     *> (interfaceParser <|> typeParser)
                     <* whitespace
+            )
+                <* end
         )
 
 
