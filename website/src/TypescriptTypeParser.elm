@@ -435,7 +435,7 @@ typeStructureToKleen ts =
                         let
                             primitiveStructurePrinter =
                                 (F.s "{" <> newLine)
-                                    <> (indent1 <> F.s "kindOfPrimitive: " <> (F.premap primitiveTypeToString F.string) <> newLine)
+                                    <> (indent1 <> F.s "primitiveType: " <> (F.premap primitiveTypeToString F.string) <> newLine)
                                     <> (indent0 <> F.s "}")
 
                             primitiveTypeToString primitiveType =
@@ -455,7 +455,7 @@ typeStructureToKleen ts =
                         let
                             objectStructurePrinter =
                                 (F.s "{" <> newLine)
-                                    <> (indent1 <> F.s "properties: {" <> newLine)
+                                    <> (indent1 <> F.s "objectProperties: {" <> newLine)
                                     <> (F.premap objectPropertiesToString F.string <> newLine)
                                     <> (indent1 <> F.s "}" <> newLine)
                                     <> (indent0 <> F.s "}")
@@ -485,7 +485,7 @@ typeStructureToKleen ts =
 
                             arrayStructurePrinter =
                                 (F.s "{" <> newLine)
-                                    <> (indent1 <> F.s "elementType: " <> F.premap (printStructure <| tabLevel + 1) F.string <> newLine)
+                                    <> (indent1 <> F.s "arrayElementType: " <> F.premap (printStructure <| tabLevel + 1) F.string <> newLine)
                                     <> (indent0 <> F.s "}")
                         in
                             F.print arrayStructurePrinter typeStructure
@@ -501,7 +501,7 @@ typeStructureToKleen ts =
 
                             unionStructurePrinter =
                                 (F.s "{" <> newLine)
-                                    <> (indent1 <> F.s "types: [" <> newLine)
+                                    <> (indent1 <> F.s "unionTypes: [" <> newLine)
                                     <> (F.premap typeStructureContentsToString F.string)
                                     <> (indent1 <> F.s "]" <> newLine)
                                     <> (indent0 <> F.s "}")
