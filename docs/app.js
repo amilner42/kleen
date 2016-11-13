@@ -11569,8 +11569,8 @@
 									})),
 							A2(
 								_Bogdanp$elm_combine$Combine_Infix_ops['<|>'],
-								A2(_Bogdanp$elm_combine$Combine_Infix_ops['<|>'], _amilner42$kleen$TypescriptTypeParser$primitiveValueParser, _amilner42$kleen$TypescriptTypeParser$interfaceValueParser),
-								_amilner42$kleen$TypescriptTypeParser$referenceValueParser)),
+								A2(_Bogdanp$elm_combine$Combine_Infix_ops['<|>'], _amilner42$kleen$TypescriptTypeParser$referenceValueParser, _amilner42$kleen$TypescriptTypeParser$interfaceValueParser),
+								_amilner42$kleen$TypescriptTypeParser$primitiveValueParser)),
 						_Bogdanp$elm_combine$Combine$many(
 							A2(
 								_Bogdanp$elm_combine$Combine_Infix_ops['*>'],
@@ -11678,14 +11678,17 @@
 	var _amilner42$kleen$TypescriptTypeParser$typescriptTypeParser = _Bogdanp$elm_combine$Combine$rec(
 		function (_p37) {
 			var _p38 = _p37;
-			return _Bogdanp$elm_combine$Combine$many(
-				A2(
-					_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+			return A2(
+				_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+				_Bogdanp$elm_combine$Combine$many(
 					A2(
-						_Bogdanp$elm_combine$Combine_Infix_ops['*>'],
-						_amilner42$kleen$TypescriptTypeParser$whitespace,
-						A2(_Bogdanp$elm_combine$Combine_Infix_ops['<|>'], _amilner42$kleen$TypescriptTypeParser$interfaceParser, _amilner42$kleen$TypescriptTypeParser$typeParser)),
-					_amilner42$kleen$TypescriptTypeParser$whitespace));
+						_Bogdanp$elm_combine$Combine_Infix_ops['<*'],
+						A2(
+							_Bogdanp$elm_combine$Combine_Infix_ops['*>'],
+							_amilner42$kleen$TypescriptTypeParser$whitespace,
+							A2(_Bogdanp$elm_combine$Combine_Infix_ops['<|>'], _amilner42$kleen$TypescriptTypeParser$interfaceParser, _amilner42$kleen$TypescriptTypeParser$typeParser)),
+						_amilner42$kleen$TypescriptTypeParser$whitespace)),
+				_Bogdanp$elm_combine$Combine$end);
 		});
 	var _amilner42$kleen$TypescriptTypeParser$parseTypes = function (input) {
 		var _p39 = A2(_Bogdanp$elm_combine$Combine$parse, _amilner42$kleen$TypescriptTypeParser$typescriptTypeParser, input);
