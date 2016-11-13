@@ -1,34 +1,34 @@
 import {
-  kindOfType,
+  kindOfSchema,
   kindOfPrimitive,
-  typeStructure,
-  arrayStructure,
-  objectStructure,
-  unionStructure,
-  primitiveStructure,
+  typeSchema,
+  arraySchema,
+  objectSchema,
+  unionSchema,
+  primitiveSchema,
   restriction,
-  typeError
+  schemaTypeError
  } from "./types";
 import { isNull, isUndefined, anyPromise } from "./util";
 
 
 /**
  * Export types used in library so that a user can create their own
- * `typeStructures` (and have them be type checked).
+ * `typeSchema`s (and have them be type checked).
  */
 export * from "./types";
 
 
 /**
- * Asserts that a model has a valid structure.
+ * Asserts that a model is valid according to a schema.
  *
- * A valid structure means:
+ * A valid model means:
  *  - No extra properties are present anywhere in the model.
  *  - All neccessary properties are present.
  *  - Every property has the correct type
  *  - All restrictions are met for that property.
  *
- * @param typeStructure A representation of the valid type structure
+ * @param typeSchema A representation of a valid model.
  * @param modelInstance An instane of the model being validified
  * @returns Promise<void>, if the promise was `resolve`d, the model is valid,
  *          if the promise was `reject`ed, there was an error.
@@ -36,7 +36,7 @@ export * from "./types";
  * NOTE: The function is curried. This allows you to build your validifiers once
  *       and use them all over your code (keep it DRY).
  */
-export const validModel = (typeStructure: typeStructure): ((any) => Promise<void>) => {
+export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => {
 
   return (modelInstance: any): Promise<void> => {
 
@@ -77,58 +77,92 @@ export const validModel = (typeStructure: typeStructure): ((any) => Promise<void
       // Check for null/undefined, this doesn't depend on the `kindOfType`.
       {
         if(isNull(modelInstance)) {
-          if(typeStructure.nullAllowed) {
+          if(typeSchema.nullAllowed) {
             return resolve();
           }
 
           return reject(
-            typeStructure.customErrorOnTypeFailure ||
-            typeError.nullField
+            typeSchema.typeFailureError ||
+            schemaTypeError.nullField
           );
         }
 
         if(isUndefined(modelInstance)) {
-          if(typeStructure.undefinedAllowed) {
+          if(typeSchema.undefinedAllowed) {
             return resolve();
           }
 
           return reject(
-            typeStructure.customErrorOnTypeFailure ||
-            typeError.undefinedField
+            typeSchema.typeFailureError ||
+            schemaTypeError.undefinedField
           );
         }
       }
 
-      // Handle 4 cases depending on the `kindOfType`.
-      switch(typeStructure.kindOfType) {
+      // Figure out type of object. If the type is invalid, reject with a
+      // `invalid schema` error, if you use typescript then these errors will
+      // never occur.
+      const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
+      const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
+      const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
+      const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
 
-        case kindOfType.primitive:
+      // To avoid boilerplate, we don't force the user to specify the
+      // `kindOfTypeSchema` and instead manually resolve it at runtime.
+      const kindOfTypeSchema =
+        (isObject && !isArray && !isPrimitive && !isUnion)
+          ?
+            kindOfSchema.object
+          :
+            (!isObject && isArray && !isPrimitive && !isUnion)
+              ?
+                kindOfSchema.array
+              :
+                (!isObject && !isArray && isPrimitive && !isUnion)
+                  ?
+                    kindOfSchema.primitive
+                  :
+                    (!isObject && !isArray && !isPrimitive && isUnion)
+                      ?
+                        kindOfSchema.union
+                      :
+                          undefined;
+
+      // If it's not a valid schema, we throw an `invalidSchema` error.
+      if(isUndefined(kindOfTypeSchema)) {
+        return Promise.reject(schemaTypeError.invalidSchema);
+      };
+
+      // Handle 4 cases depending on the `kindOfSchema`.
+      switch(kindOfTypeSchema) {
+
+        case kindOfSchema.primitive:
           // Cast for better inference.
-          const primitiveStructure = typeStructure as primitiveStructure;
+          const primitiveStructure = typeSchema as primitiveSchema;
           const primitiveTypeStringName =
-            kindOfPrimitive[primitiveStructure.kindOfPrimitive];
+            kindOfPrimitive[primitiveStructure.primitiveType];
 
           if(typeof modelInstance === primitiveTypeStringName) {
             return resolveIfRestrictionMet(primitiveStructure.restriction);
           }
 
           return reject(
-            primitiveStructure.customErrorOnTypeFailure ||
-            typeError.primitiveFieldInvalid
+            primitiveStructure.typeFailureError ||
+            schemaTypeError.primitiveFieldInvalid
           );
 
-        case kindOfType.array:
+        case kindOfSchema.array:
           // Casting for better inference.
-          const arrayStructure = typeStructure as arrayStructure;
+          const arrayStructure = typeSchema as arraySchema;
           if(!Array.isArray(modelInstance)) {
             return reject(
-              arrayStructure.customErrorOnTypeFailure ||
-              typeError.arrayFieldInvalid
+              arrayStructure.typeFailureError ||
+              schemaTypeError.arrayFieldInvalid
             );
           } else {
             return Promise.all(
               modelInstance.map((arrayElement: any) => {
-                return validModel(arrayStructure.elementType)(arrayElement);
+                return validModel(arrayStructure.arrayElementType)(arrayElement);
               })
             )
             .then(() => {
@@ -139,30 +173,30 @@ export const validModel = (typeStructure: typeStructure): ((any) => Promise<void
             });
           }
 
-        case kindOfType.object:
+        case kindOfSchema.object:
           // Casting for better inference.
-          const objectStructure = typeStructure as objectStructure;
+          const objectStructure = typeSchema as objectSchema;
 
           if(typeof modelInstance != "object") {
             return reject(
-              objectStructure.customErrorOnTypeFailure ||
-              typeError.objectFieldInvalid
+              objectStructure.typeFailureError ||
+              schemaTypeError.objectFieldInvalid
             );
           }
 
           // Unspecified properties on `modeInstance` not allowed.
           for(let modelProperty in modelInstance) {
-            if(!objectStructure.properties[modelProperty]) {
+            if(!objectStructure.objectProperties[modelProperty]) {
               return reject(
-                objectStructure.customErrorOnTypeFailure ||
-                typeError.objectHasExtraFields
+                objectStructure.typeFailureError ||
+                schemaTypeError.objectHasExtraFields
               );
             }
           }
 
           return Promise.all(
-            Object.keys(objectStructure.properties).map((key: string) => {
-              return validModel(objectStructure.properties[key])(modelInstance[key]);
+            Object.keys(objectStructure.objectProperties).map((key: string) => {
+              return validModel(objectStructure.objectProperties[key])(modelInstance[key]);
             })
           )
           .then(() => {
@@ -172,12 +206,12 @@ export const validModel = (typeStructure: typeStructure): ((any) => Promise<void
             return reject(error);
           });
 
-        case kindOfType.union:
+        case kindOfSchema.union:
           // Casting for better inference.
-          const unionStructure = typeStructure as unionStructure;
+          const unionStructure = typeSchema as unionSchema;
 
           return anyPromise(
-            unionStructure.types.map((singleTypeFromUnion: typeStructure) => {
+            unionStructure.unionTypes.map((singleTypeFromUnion: typeSchema) => {
               return validModel(singleTypeFromUnion)(modelInstance);
             })
           )
@@ -186,8 +220,8 @@ export const validModel = (typeStructure: typeStructure): ((any) => Promise<void
           })
           .catch((arrayOfRejectedPromisesErrors: any[]) => {
             return reject(
-              unionStructure.customErrorOnTypeFailure ||
-              typeError.unionHasNoMatchingType
+              unionStructure.typeFailureError ||
+              schemaTypeError.unionHasNoMatchingType
             );
           });
       }

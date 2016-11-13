@@ -11267,24 +11267,15 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('kindOfType: kleen.kindOfType.primitive,'),
-										newLine)),
-								A2(
-									_krisajenkins$formatting$Formatting_ops['<>'],
-									A2(
-										_krisajenkins$formatting$Formatting_ops['<>'],
-										indent1,
+										_krisajenkins$formatting$Formatting$s('primitiveType: '),
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
-											_krisajenkins$formatting$Formatting$s('kindOfPrimitive: '),
-											A2(
-												_krisajenkins$formatting$Formatting_ops['<>'],
-												A2(_krisajenkins$formatting$Formatting$premap, primitiveTypeToString, _krisajenkins$formatting$Formatting$string),
-												newLine))),
-									A2(
-										_krisajenkins$formatting$Formatting_ops['<>'],
-										indent0,
-										_krisajenkins$formatting$Formatting$s('}')))));
+											A2(_krisajenkins$formatting$Formatting$premap, primitiveTypeToString, _krisajenkins$formatting$Formatting$string),
+											newLine))),
+								A2(
+									_krisajenkins$formatting$Formatting_ops['<>'],
+									indent0,
+									_krisajenkins$formatting$Formatting$s('}'))));
 						return A2(_krisajenkins$formatting$Formatting$print, primitiveStructurePrinter, _p15._1);
 					case 'ObjectStructure':
 						var propertyToString = function (propertyTypeStructure) {
@@ -11327,36 +11318,27 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('kindOfType: kleen.kindOfType.object,'),
+										_krisajenkins$formatting$Formatting$s('objectProperties: {'),
 										newLine)),
 								A2(
 									_krisajenkins$formatting$Formatting_ops['<>'],
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										indent1,
-										A2(
-											_krisajenkins$formatting$Formatting_ops['<>'],
-											_krisajenkins$formatting$Formatting$s('properties: {'),
-											newLine)),
+										A2(_krisajenkins$formatting$Formatting$premap, objectPropertiesToString, _krisajenkins$formatting$Formatting$string),
+										newLine),
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
-											A2(_krisajenkins$formatting$Formatting$premap, objectPropertiesToString, _krisajenkins$formatting$Formatting$string),
-											newLine),
+											indent1,
+											A2(
+												_krisajenkins$formatting$Formatting_ops['<>'],
+												_krisajenkins$formatting$Formatting$s('}'),
+												newLine)),
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
-											A2(
-												_krisajenkins$formatting$Formatting_ops['<>'],
-												indent1,
-												A2(
-													_krisajenkins$formatting$Formatting_ops['<>'],
-													_krisajenkins$formatting$Formatting$s('}'),
-													newLine)),
-											A2(
-												_krisajenkins$formatting$Formatting_ops['<>'],
-												indent0,
-												_krisajenkins$formatting$Formatting$s('}')))))));
+											indent0,
+											_krisajenkins$formatting$Formatting$s('}'))))));
 						return A2(_krisajenkins$formatting$Formatting$print, objectStructurePrinter, _p15._1);
 					case 'ArrayStructure':
 						var arrayStructurePrinter = A2(
@@ -11372,27 +11354,18 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('kindOfType: kleen.kindOfType.array,'),
-										newLine)),
-								A2(
-									_krisajenkins$formatting$Formatting_ops['<>'],
-									A2(
-										_krisajenkins$formatting$Formatting_ops['<>'],
-										indent1,
+										_krisajenkins$formatting$Formatting$s('arrayElementType: '),
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
-											_krisajenkins$formatting$Formatting$s('elementType: '),
 											A2(
-												_krisajenkins$formatting$Formatting_ops['<>'],
-												A2(
-													_krisajenkins$formatting$Formatting$premap,
-													printStructure(tabLevel + 1),
-													_krisajenkins$formatting$Formatting$string),
-												newLine))),
-									A2(
-										_krisajenkins$formatting$Formatting_ops['<>'],
-										indent0,
-										_krisajenkins$formatting$Formatting$s('}')))));
+												_krisajenkins$formatting$Formatting$premap,
+												printStructure(tabLevel + 1),
+												_krisajenkins$formatting$Formatting$string),
+											newLine))),
+								A2(
+									_krisajenkins$formatting$Formatting_ops['<>'],
+									indent0,
+									_krisajenkins$formatting$Formatting$s('}'))));
 						var typeStructure = A2(_amilner42$kleen$TypescriptTypeParser$nameAndContentToStructure, _p15._0, _p15._1);
 						return A2(_krisajenkins$formatting$Formatting$print, arrayStructurePrinter, typeStructure);
 					case 'UnionStructure':
@@ -11430,33 +11403,24 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('kindOfType: kleen.kindOfType.union'),
+										_krisajenkins$formatting$Formatting$s('unionTypes: ['),
 										newLine)),
 								A2(
 									_krisajenkins$formatting$Formatting_ops['<>'],
+									A2(_krisajenkins$formatting$Formatting$premap, typeStructureContentsToString, _krisajenkins$formatting$Formatting$string),
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										indent1,
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
-											_krisajenkins$formatting$Formatting$s('types: ['),
-											newLine)),
-									A2(
-										_krisajenkins$formatting$Formatting_ops['<>'],
-										A2(_krisajenkins$formatting$Formatting$premap, typeStructureContentsToString, _krisajenkins$formatting$Formatting$string),
+											indent1,
+											A2(
+												_krisajenkins$formatting$Formatting_ops['<>'],
+												_krisajenkins$formatting$Formatting$s(']'),
+												newLine)),
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
-											A2(
-												_krisajenkins$formatting$Formatting_ops['<>'],
-												indent1,
-												A2(
-													_krisajenkins$formatting$Formatting_ops['<>'],
-													_krisajenkins$formatting$Formatting$s(']'),
-													newLine)),
-											A2(
-												_krisajenkins$formatting$Formatting_ops['<>'],
-												indent0,
-												_krisajenkins$formatting$Formatting$s('}')))))));
+											indent0,
+											_krisajenkins$formatting$Formatting$s('}'))))));
 						return A2(_krisajenkins$formatting$Formatting$print, unionStructurePrinter, _p15._1);
 					default:
 						return A2(_elm_lang$core$Basics_ops['++'], _p15._1, referenceNamePostFix);

@@ -1,13 +1,12 @@
-export interface baseType {
-    kindOfType: kindOfType;
-    customErrorOnTypeFailure?: any;
+export interface baseSchema {
+    typeFailureError?: any;
     nullAllowed?: boolean;
     undefinedAllowed?: boolean;
 }
-export interface restrictableType extends baseType {
+export interface restrictableSchema extends baseSchema {
     restriction?: restriction;
 }
-export declare enum kindOfType {
+export declare enum kindOfSchema {
     primitive = 0,
     array = 1,
     union = 2,
@@ -22,27 +21,28 @@ export declare enum kindOfPrimitive {
     symbol = 5,
 }
 export declare type restriction = (modelInstance: any) => void | Promise<void>;
-export declare type typeStructure = primitiveStructure | arrayStructure | unionStructure | objectStructure;
-export interface objectStructure extends restrictableType {
+export declare type typeSchema = primitiveSchema | arraySchema | unionSchema | objectSchema;
+export interface objectSchema extends restrictableSchema {
     properties: {
-        [propertyName: string]: typeStructure;
+        [propertyName: string]: typeSchema;
     };
 }
-export interface primitiveStructure extends restrictableType {
+export interface primitiveSchema extends restrictableSchema {
     kindOfPrimitive: kindOfPrimitive;
 }
-export interface arrayStructure extends restrictableType {
-    elementType: typeStructure;
+export interface arraySchema extends restrictableSchema {
+    elementType: typeSchema;
 }
-export interface unionStructure extends baseType {
-    types: typeStructure[];
+export interface unionSchema extends baseSchema {
+    types: typeSchema[];
 }
-export declare enum typeError {
-    nullField = 0,
-    undefinedField = 1,
-    primitiveFieldInvalid = 2,
-    arrayFieldInvalid = 3,
-    objectFieldInvalid = 4,
-    objectHasExtraFields = 5,
-    unionHasNoMatchingType = 6,
+export declare enum schemaTypeError {
+    invalidSchema = 0,
+    nullField = 1,
+    undefinedField = 2,
+    primitiveFieldInvalid = 3,
+    arrayFieldInvalid = 4,
+    objectFieldInvalid = 5,
+    objectHasExtraFields = 6,
+    unionHasNoMatchingType = 7,
 }
