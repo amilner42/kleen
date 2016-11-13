@@ -23,18 +23,18 @@ export declare enum kindOfPrimitive {
 export declare type restriction = (modelInstance: any) => void | Promise<void>;
 export declare type typeSchema = primitiveSchema | arraySchema | unionSchema | objectSchema;
 export interface objectSchema extends restrictableSchema {
-    properties: {
+    objectProperties: {
         [propertyName: string]: typeSchema;
     };
 }
 export interface primitiveSchema extends restrictableSchema {
-    kindOfPrimitive: kindOfPrimitive;
+    primitiveType: kindOfPrimitive;
 }
 export interface arraySchema extends restrictableSchema {
-    elementType: typeSchema;
+    arrayElementType: typeSchema;
 }
 export interface unionSchema extends baseSchema {
-    types: typeSchema[];
+    unionTypes: typeSchema[];
 }
 export declare enum schemaTypeError {
     invalidSchema = 0,
