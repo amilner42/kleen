@@ -1,5 +1,11 @@
 # Kleen Changelog
 
+### Kleen V1.0.1 (2016-11-13)
+
+Updated the tutorial in the README to reflect the new syntax in V1.0.0.
+
+No additions or breaking changes.
+
 ### Kleen V1.0.0 (2016-11-13)
 
 ##### Upgrading from V0.1.x

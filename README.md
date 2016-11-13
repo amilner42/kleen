@@ -26,9 +26,7 @@ It's also designed to be so simple that you can learn the entire library
 This is a strongly-typed npm package, so typings work out of the box.
 
 
-### Website
-
-[Kleen](https://amilner42.github.io/kleen)
+### [Website](https://amilner42.github.io/kleen)
 
 You _probably_ should head to the website if you're just using the library,
 there is a full tutorial on the website and also a code generator. If you're
@@ -39,22 +37,7 @@ NOTE: I'm currently in the process of moving the tutorial to the website, so
 for now you'll have to read the tutorial in this README.
 
 
-### Examples
-
-The best way to learn is to take a look at some examples, the API after all only
-has a single method. Head over to my [tests](tests/main.test.ts) to see the
-spec and get a feel for the library, but if you prefer to see an example from
-a live open source project, head over [here](https://github.com/amilner42/less-money-more-happy/tree/cleaning-refactor/backend/src/models)
-and check out any of those models, they all use **kleen** for validation to
-keep the database and the code "kleen". You can also see a few live examples of
-using **kleen** to create Express passport-local [login](https://github.com/amilner42/less-money-more-happy/blob/cleaning-refactor/backend/src/passport-local-auth-strategies.ts#L76)
-and [register](https://github.com/amilner42/less-money-more-happy/blob/cleaning-refactor/backend/src/passport-local-auth-strategies.ts#L170)
-strategies.
-
-
 ### Full Tutorial (~10-15 minutes)
-
-So you were too lazy to go to the examples, I should've known I'd find you here.
 
 Code snippets assume you have `import * as kleen from "kleen"`.
 
@@ -62,10 +45,9 @@ Basics first, let's get ourselves a string.
 
 ```typescript
 
-const stringType: kleen.primitiveStructure =
+const stringSchema: kleen.primitiveSchema =
   {
-    kindOfType: kleen.kindOfType.primitive,
-    kindOfPrimitive: kleen.kindOfPrimitive.string,
+    primitiveType: kleen.kindOfPrimitive.string,
   }
 ```
 
@@ -74,10 +56,9 @@ not `null` or `undefined`. If we wanted to allow our data to be null/undefined
 then we would:
 
 ```typescript
-const stringAllowingNullOrUndefinedType: kleen.primitiveStructure =
+const stringOrNotSchema: kleen.primitiveSchema =
   {
-    kindOfType: kleen.kindOfType.primitive,
-    kindOfPrimitive: kleen.kindOfPrimitive.string,
+    primitiveType: kleen.kindOfPrimitive.string,
     nullAllowed: true,
     undefinedAllowed: true
   }
@@ -88,14 +69,14 @@ has one method, what did you think we were going to do?!
 
 
 ```typescript
-
-kleen.validModel(stringType)("asdf")
+kleen.validModel(stringSchema)("asdf")
 .then(() => {
-  // yay it's valid.
+  // Yay it's valid. In this case, it will be valid.
 })
 .catch((error) => {
   // `error` will be thrown by `validModel`, it will either be a default error
-  // from kleen or some custom error you have attached.
+  // from kleen or some custom error you have attached. In this case, it will
+  // not go the catch because "asdf" is a valid against the string schema.
 });
 
 ```
@@ -105,7 +86,7 @@ You _may_ be confused looking at the notation: `validModel(...)(...)`, don't be,
 you get the benefit of being able to succinctly create validators:
 
 ```typescript
-const aValidString = kleen.validModel(stringType);
+const aValidString = kleen.validModel(stringSchema);
 
 // And you can call it later with the remaining param:
 //   aValidString("someString")
@@ -115,21 +96,13 @@ Ok, so you now know the entire API, let that soak in. Enough soaking. Seriously,
 stop.
 
 All we've done is check a primitive type. What `type`s can we check? We have the
-following 4 structures as building blocks.
+following 4 schemas as building blocks.
 
 ```typescript
-kleen.primitiveStructure // a primitive
-kleen.objectStructure    // Good old regular { ... }
-kleen.arrayStructure     // Can't forget about [...]
-kleen.unionStructure     // And lastly union types!
-
-// These will map to the following `kindOfType`s respectively. Every structure
-// specifies it's `kindOfType`.
-
-kleen.kindOfType.primitive
-kleen.kindOfType.object
-kleen.kindOfType.array
-kleen.kindOfType.union
+kleen.primitiveSchema // a primitive
+kleen.objectSchema    // Good old regular { ... }
+kleen.arraySchema     // Can't forget about [...]
+kleen.unionSchema     // And lastly union types!
 ```
 
 These 4 building blocks compose how we describe our data. If you got the
@@ -139,33 +112,29 @@ guarantees and extend them to runtime_. So if we wanted to create an object with
 two properties, both strings, we would do:
 
 ```typescript
-const basicUserType: kleen.objectStructure =
+const basicUserSchema: kleen.objectSchema =
   {
-    kindOfType: kleen.kindOfType.object,
-    properties: {
-      email: stringType, // remember we defined `stringType` above
-      password: stringType
+    objectProperties: {
+      email: stringSchema, // remember we defined `stringSchema` above
+      password: stringSchema
     }
   }
 ```
 
 Of course sub properties could be object themselves, in fact they could be any
-of the 4 possible `typeStructure`s, our building blocks.
+of the 4 possible schemas listed above; the schemas are our building blocks.
 
 Here is an example of an array model, this is an array at root level, not nested
 in an object (same as we did above with the primitive, types do not need to be
 nested in an object, think about it the same way as the typescript `type`).
 
 ```typescript
-const arrayOfUsers: kleen.arrayStructure =
+const arrayOfUsersSchema: kleen.arraySchema =
   {
-    kindOfType: kleen.kindOfType.array,
-    elementType: {
-      kindOfType: kleen.kindOfType.object,
-      properties: {
+    arrayElementType: {
+      objectProperties: {
         "somePropertyName": {
-          kindOfType: kleen.kindOfType.primitive,
-          kindOfPrimitive: kleen.kindOfPrimitive.number
+          primitiveType: kleen.kindOfPrimitive.number
         }
       }
     }
@@ -181,25 +150,22 @@ const invalidArray4 = [ { somePropertyName: 43, extraProperty: "uhoh" }];
 const invalidArray5 = [ { }];
 ```
 
-Ok, so the only thing you haven't seen me use is a `unionStructure`.
+Ok, so the only thing you haven't seen me use is a `unionSchema`.
 
 
 ```typescript
-const numberOrBool: kleen.unionStructure = {
-  kindOfType: kleen.kindOfType.union,
-  types: [
+const numberOrBoolSchema: kleen.unionSchema = {
+  unionTypes: [
     {
-      kindOfType: kleen.kindOfType.primitive,
-      kindOfPrimitive: kleen.kindOfPrimitive.number
+      primitiveType: kleen.kindOfPrimitive.number
     },
     {
-      kindOfType: kleen.kindOfType.primitive,
-      kindOfPrimitive: kleen.kindOfPrimitive.boolean
+      primitiveType: kleen.kindOfPrimitive.boolean
     }
   ]
 }
 
-// Easy as that, you just specify all the `types` in the union. In the case
+// Easy as that, you just specify all the `unionTypes`. In the case
 // above both `5` and `true` would be valid models.
 ```
 
@@ -212,16 +178,13 @@ the type is correct, but also that some restrictions are met...perhaps you
 want the `password` field to be more than 85 characters.
 
 ```typescript
-const userTypeWithPasswordRestriction: objectStructure = {
-  kindOfType: kleen.kindOfType.object,
-  properties: {
+const userWithPasswordRestrictionSchema: objectSchema = {
+  objectProperties: {
     email: {
-      kindOfType: kleen.kindOfType.primitive,
-      kindOfPrimitive: kleen.kindOfPrimitive.string
+      primitiveType: kleen.kindOfPrimitive.string
     },
     password: {
-      kindOfType: kleen.kindOfType.primitive,
-      kindOfPrimitive: kleen.kindOfPrimitive.string,
+      primitiveType: kleen.kindOfPrimitive.string,
       // To "fail" a restriction, all you have to do is return a rejected
       // promise, if you are writing sync code (like below) then you use
       // `Promise.reject` to create the rejected promise. If you are writing an
@@ -248,12 +211,12 @@ checking is always performed first and only on type-check-success are our
 restrictions run**. We are *separating type-validation from data-validation*,
 this is another core concept of this library.
 
-In the example above, we could add a restriction on the object structure itself
+In the example above, we could add a restriction on the object schema itself
 (that restriction would be called with an `{ email: "...", password: "..."}`),
 if our restriction needed access to both the email and the password at once.
-For code-readibility, you should always attach restrictions at the most specific
+For code-readability, you should always attach restrictions at the most specific
 level, for example, you could attach our password restriction to the object
-structure and simply get the `password` field from the object, but this makes
+schema and simply get the `password` field from the object, but this makes
 the code less readable and should be avoided. That being said, if we did add
 a restriction on the object itself, by the time that restriction ran it'd not
 only be guaranteed that the object it's given looks like
@@ -275,18 +238,17 @@ only on restriction failures, but also on type failures. Let's add a custom
 type failure error to our basic string type.
 
 ```typescript
-const stringTypeCustomTypeError: kleen.primitiveStructure = {
-  kindOfType: kleen.kindOfType.primtive,
-  kindOfPrimitive: kleen.kindOfPrimitive.string,
-  customErrorOnTypeFailure: "Invalid model type, it must be a string!"
+const stringTypeCustomTypeError: kleen.primitiveSchema = {
+  primtitiveType: kleen.kindOfPrimitive.string,
+  typeFailureError: "Invalid model type, must be a string!"
 }
 
 validModel(stringTypeCustomTypeError)(null)
 .then(() => {
-  // wont be called
+  // Won't be called, null is not valid against the schema.
 })
 .catch((error) => {
-  // code will go here, error will be === "Invalid model type, it must be a string!"
+  // Code will go here, error will be "Invalid model type, must be a string!".
 });
 ```
 
@@ -305,12 +267,16 @@ please stop...let's do a quick summary first.
 In terms of the _way_ valid model works, we know that:
 
 1. Valid model only runs restrictions after the type is confirmed to be correct.
+  - You never need to waste time in your restrictions coding checks for the
+    type of the object. We separate type validation and data validation.
 2. Valid model only runs restrictions after sub-restrictions are met.
 3. We can throw custom errors on type failure.
-  - Use the `customErrorOnTypeFailure` field
+  - Use the `typeFailureError` field on any schema to specify what to do in case
+    of type failure.
 4. We can throw custom errors on restriction failures.
-  - `Promise.reject` with whatever error you want.
-
+  - Async is fully supported (in fact it's a core part of the design), if you
+    want to fail sync code then `Promise.reject` with an error, on the other
+    hand if you use async code then just make sure it's rejecting on failure.
 
 Ok...that's the entire library! Now go rejoice, embrace the new knowledge! I
 won't judge you (more than I already do).
