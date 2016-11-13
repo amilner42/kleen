@@ -102,10 +102,10 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
       // Figure out type of object. If the type is invalid, reject with a
       // `invalid schema` error, if you use typescript then these errors will
       // never occur.
-      const isObject = !isUndefined((typeSchema as objectSchema).properties);
-      const isArray = !isUndefined((typeSchema as arraySchema).elementType);
-      const isPrimitive = !isUndefined((typeSchema as primitiveSchema).kindOfPrimitive);
-      const isUnion = !isUndefined((typeSchema as unionSchema).types);
+      const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
+      const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
+      const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
+      const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
 
       // To avoid boilerplate, we don't force the user to specify the
       // `kindOfTypeSchema` and instead manually resolve it at runtime.
@@ -140,7 +140,7 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
           // Cast for better inference.
           const primitiveStructure = typeSchema as primitiveSchema;
           const primitiveTypeStringName =
-            kindOfPrimitive[primitiveStructure.kindOfPrimitive];
+            kindOfPrimitive[primitiveStructure.primitiveType];
 
           if(typeof modelInstance === primitiveTypeStringName) {
             return resolveIfRestrictionMet(primitiveStructure.restriction);
@@ -162,7 +162,7 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
           } else {
             return Promise.all(
               modelInstance.map((arrayElement: any) => {
-                return validModel(arrayStructure.elementType)(arrayElement);
+                return validModel(arrayStructure.arrayElementType)(arrayElement);
               })
             )
             .then(() => {
@@ -186,7 +186,7 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
 
           // Unspecified properties on `modeInstance` not allowed.
           for(let modelProperty in modelInstance) {
-            if(!objectStructure.properties[modelProperty]) {
+            if(!objectStructure.objectProperties[modelProperty]) {
               return reject(
                 objectStructure.typeFailureError ||
                 schemaTypeError.objectHasExtraFields
@@ -195,8 +195,8 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
           }
 
           return Promise.all(
-            Object.keys(objectStructure.properties).map((key: string) => {
-              return validModel(objectStructure.properties[key])(modelInstance[key]);
+            Object.keys(objectStructure.objectProperties).map((key: string) => {
+              return validModel(objectStructure.objectProperties[key])(modelInstance[key]);
             })
           )
           .then(() => {
@@ -211,7 +211,7 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
           const unionStructure = typeSchema as unionSchema;
 
           return anyPromise(
-            unionStructure.types.map((singleTypeFromUnion: typeSchema) => {
+            unionStructure.unionTypes.map((singleTypeFromUnion: typeSchema) => {
               return validModel(singleTypeFromUnion)(modelInstance);
             })
           )

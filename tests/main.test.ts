@@ -24,21 +24,21 @@ describe("src/main.ts", function() {
   describe("#validModel", function() {
 
     const stringType: primitiveSchema = {
-      kindOfPrimitive: kindOfPrimitive.string
+      primitiveType: kindOfPrimitive.string
     };
 
     const validString = validModel(stringType);
 
     const booleanType: primitiveSchema = {
-      kindOfPrimitive: kindOfPrimitive.boolean
+      primitiveType: kindOfPrimitive.boolean
     };
 
     const numberType: primitiveSchema = {
-      kindOfPrimitive: kindOfPrimitive.number
+      primitiveType: kindOfPrimitive.number
     };
 
     const stringAllowingNullOrUndefined: primitiveSchema = {
-      kindOfPrimitive: kindOfPrimitive.string,
+      primitiveType: kindOfPrimitive.string,
       nullAllowed: true,
       undefinedAllowed: true
     };
@@ -47,14 +47,14 @@ describe("src/main.ts", function() {
       validModel(stringAllowingNullOrUndefined);
 
     const numberWithCustomError: primitiveSchema = {
-      kindOfPrimitive: kindOfPrimitive.number,
+      primitiveType: kindOfPrimitive.number,
       typeFailureError: "error"
     };
 
     const validNumberWithCustomError = validModel(numberWithCustomError);
 
     const booleanWithRestriction: primitiveSchema = {
-      kindOfPrimitive: kindOfPrimitive.boolean,
+      primitiveType: kindOfPrimitive.boolean,
       restriction: (someBool: boolean) => {
         if(someBool) {
           return Promise.reject("error");
@@ -66,7 +66,7 @@ describe("src/main.ts", function() {
       validModel(booleanWithRestriction);
 
     const basicUserObjectStructure: objectSchema = {
-      properties: {
+      objectProperties: {
         "email": stringType,
         "password": stringType
       },
@@ -77,7 +77,7 @@ describe("src/main.ts", function() {
       validModel(basicUserObjectStructure);
 
     const arrayOfNumberWithCustomErrorAndRestriction: arraySchema = {
-      elementType: numberWithCustomError,
+      arrayElementType: numberWithCustomError,
       restriction: (arrayOfNumber: number[]) => {
         if(arrayOfNumber.length > 3) {
           return Promise.reject("restriction-error");
@@ -91,14 +91,14 @@ describe("src/main.ts", function() {
 
     // Union of 0 types, should always fail.
     const unionOfNoTypes: unionSchema = {
-      types: []
+      unionTypes: []
     };
 
     const validUnionOfNoTypes =
       validModel(unionOfNoTypes);
 
     const unionOfPrimitives: unionSchema = {
-      types: [
+      unionTypes: [
         stringType,
         booleanType,
         numberType
@@ -109,7 +109,7 @@ describe("src/main.ts", function() {
       validModel(unionOfPrimitives);
 
     const complexObject: objectSchema = {
-      properties: {
+      objectProperties: {
         "somePrimitive": unionOfPrimitives,
         "arrayOfNumbers": arrayOfNumberWithCustomErrorAndRestriction
       }

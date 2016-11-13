@@ -86,7 +86,7 @@ export interface objectSchema extends restrictableSchema {
   /**
    * The properties on the interface.
    */
-  properties: {
+  objectProperties: {
     /**
      * Each property has a type.
      */
@@ -102,7 +102,7 @@ export interface primitiveSchema extends restrictableSchema {
   /**
    * Specifiying which `kindOfPrimitive` it is.
    */
-  kindOfPrimitive: kindOfPrimitive;
+  primitiveType: kindOfPrimitive;
 }
 
 
@@ -111,14 +111,14 @@ export interface primitiveSchema extends restrictableSchema {
  *
  * NOTE: The restriction applies to the array itself, not the elements in
  * the array, the restrictions on the elements themselves will be
- * determined from the restrictions placed on the `elementType`
+ * determined from the restrictions placed on the `arrayElementType`
  * `typeSchema`.
  */
 export interface arraySchema extends restrictableSchema {
   /**
    * The type of a single element in the array.
    */
-  elementType: typeSchema;
+  arrayElementType: typeSchema;
 }
 
 
@@ -130,9 +130,9 @@ export interface arraySchema extends restrictableSchema {
  */
 export interface unionSchema extends baseSchema {
   /**
-   * A union of all the types in `types`.
+   * A union of all the types in `typeSchema`.
    */
-  types: typeSchema[];
+  unionTypes: typeSchema[];
 }
 
 
