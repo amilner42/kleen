@@ -2,36 +2,39 @@
 
 
 /**
- * Every type should extend `baseType` so that it specifies:
- *   - What kind of type it is (array or object etc...)
+ * A `schema` is a thin layer over a Typescript `type`.
+ *
+ * Every schema should extend `baseSchema` so that it specifies:
  *   - [Optionally] A custom error `any` if the type is invalid (this is not
  *     the same as the restriction failing).
  *   - [Optionally] Specify that null is allowed, by default it is not.
  *   - [Optionally] Specify that undefined is allowed, by default it is not.
  */
-export interface baseType {
-  kindOfType: kindOfType;
-  customErrorOnTypeFailure?: any;
+export interface baseSchema {
+  typeFailureError?: any;
   nullAllowed?: boolean;
   undefinedAllowed?: boolean;
 }
 
 
 /**
- * A restrictable type represents a type which can have restrictions.
- * Currently all categories of types support restrictions except for
- * unions (because in a union, each type should have it's own
- * restrictions).
+ * A restrictable schema represents a schema which can have restrictions.
+ * Currently all kinds of schema types support restrictions except for
+ * union schemas (because in a union, each individual schema should have it's
+ * own restrictions).
  */
-export interface restrictableType extends baseType {
+export interface restrictableSchema extends baseSchema {
   restriction?: restriction;
 }
 
 
 /**
- * A `typeStructure` is one of the following four categories.
+ * This type is not used in the API, but can be helpful when working with
+ * schemas and behaving according to the type of schema.
+ *
+ * TODO: Do we want a function for getting the typeOfSchema?
  */
-export enum kindOfType {
+export enum kindOfSchema {
   primitive,
   array,
   union,
@@ -59,24 +62,19 @@ export enum kindOfPrimitive {
 
 /**
  * A restriction can be placed on any `restrictableType`, for which it should
- * `Promise.reject(new invalidModelError)` if the `modelInstance` is invalid,
- * otherwise it should `Promise.resolve()`` or simply return void.
- *
- * WARNING: There seems to be slightly strange behaviour when using throwing
- * errors instead of `reject`ing them, so avoid directly throwing errors.
+ * `Promise.reject(any error)` too fail the restriction, otherwise it succeeds.
  */
 export type restriction = (modelInstance: any) => void | Promise<void>;
 
 
 /**
- * A formal representation of the structure of a `type`. A `typeStructure` can
- * currently be on of 4 `kindOfType`s.
+ * A formal representation of the structure of a `type`.
  */
-export type typeStructure
-  = primitiveStructure
-  | arrayStructure
-  | unionStructure
-  | objectStructure;
+export type typeSchema
+  = primitiveSchema
+  | arraySchema
+  | unionSchema
+  | objectSchema;
 
 
 /**
@@ -84,7 +82,7 @@ export type typeStructure
 *
 * NOTE: This maps over to an `interface` from typescript.
 */
-export interface objectStructure extends restrictableType {
+export interface objectSchema extends restrictableSchema {
   /**
    * The properties on the interface.
    */
@@ -92,7 +90,7 @@ export interface objectStructure extends restrictableType {
     /**
      * Each property has a type.
      */
-    [propertyName: string]: typeStructure;
+    [propertyName: string]: typeSchema;
   };
 }
 
@@ -100,7 +98,7 @@ export interface objectStructure extends restrictableType {
 /**
  * A formal representation of the structure of a primitive.
  */
-export interface primitiveStructure extends restrictableType {
+export interface primitiveSchema extends restrictableSchema {
   /**
    * Specifiying which `kindOfPrimitive` it is.
    */
@@ -111,16 +109,16 @@ export interface primitiveStructure extends restrictableType {
 /**
  * A formal representation of the structure of an array.
  *
- * NOTE: The restrictions apply to the array itself, not the elements in
+ * NOTE: The restriction applies to the array itself, not the elements in
  * the array, the restrictions on the elements themselves will be
  * determined from the restrictions placed on the `elementType`
- * `typeStructure`.
+ * `typeSchema`.
  */
-export interface arrayStructure extends restrictableType {
+export interface arraySchema extends restrictableSchema {
   /**
    * The type of a single element in the array.
    */
-  elementType: typeStructure;
+  elementType: typeSchema;
 }
 
 
@@ -130,18 +128,20 @@ export interface arrayStructure extends restrictableType {
  * NOTE: A union has no restrictions because the restrcitions will be
  * present on each individual type in the union.
  */
-export interface unionStructure extends baseType {
+export interface unionSchema extends baseSchema {
   /**
    * A union of all the types in `types`.
    */
-  types: typeStructure[];
+  types: typeSchema[];
 }
 
 
 /**
  * Possible errors thrown by the type being invalid.
  */
-export enum typeError {
+export enum schemaTypeError {
+  // Should never happen in production, fired if a schema is invalid.
+  invalidSchema,
   nullField,
   undefinedField,
   primitiveFieldInvalid,

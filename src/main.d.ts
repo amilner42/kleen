@@ -1,3 +1,3 @@
-import { typeStructure } from "./types";
+import { typeSchema } from "./types";
 export * from "./types";
-export declare const validModel: (typeStructure: typeStructure) => (any: any) => Promise<void>;
+export declare const validModel: (typeSchema: typeSchema) => (any: any) => Promise<void>;

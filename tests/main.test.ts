@@ -2,15 +2,15 @@
 
 import {
   validModel,
-  arrayStructure,
-  typeStructure,
-  objectStructure,
-  primitiveStructure,
-  unionStructure,
+  arraySchema,
+  typeSchema,
+  objectSchema,
+  primitiveSchema,
+  unionSchema,
   restriction,
   kindOfPrimitive,
-  kindOfType,
-  typeError
+  kindOfSchema,
+  schemaTypeError
 } from "../src/main";
 import {
   mochaAssertPromiseErrorsWith,
@@ -23,25 +23,21 @@ describe("src/main.ts", function() {
 
   describe("#validModel", function() {
 
-    const stringType: primitiveStructure = {
-      kindOfType: kindOfType.primitive,
+    const stringType: primitiveSchema = {
       kindOfPrimitive: kindOfPrimitive.string
     };
 
     const validString = validModel(stringType);
 
-    const booleanType: primitiveStructure = {
-      kindOfType: kindOfType.primitive,
+    const booleanType: primitiveSchema = {
       kindOfPrimitive: kindOfPrimitive.boolean
     };
 
-    const numberType: primitiveStructure = {
-      kindOfType: kindOfType.primitive,
+    const numberType: primitiveSchema = {
       kindOfPrimitive: kindOfPrimitive.number
     };
 
-    const stringAllowingNullOrUndefined: primitiveStructure = {
-      kindOfType: kindOfType.primitive,
+    const stringAllowingNullOrUndefined: primitiveSchema = {
       kindOfPrimitive: kindOfPrimitive.string,
       nullAllowed: true,
       undefinedAllowed: true
@@ -50,16 +46,14 @@ describe("src/main.ts", function() {
     const validStringOrNullOrUndefined =
       validModel(stringAllowingNullOrUndefined);
 
-    const numberWithCustomError: primitiveStructure = {
-      kindOfType: kindOfType.primitive,
+    const numberWithCustomError: primitiveSchema = {
       kindOfPrimitive: kindOfPrimitive.number,
-      customErrorOnTypeFailure: "error"
+      typeFailureError: "error"
     };
 
     const validNumberWithCustomError = validModel(numberWithCustomError);
 
-    const booleanWithRestriction: primitiveStructure = {
-      kindOfType: kindOfType.primitive,
+    const booleanWithRestriction: primitiveSchema = {
       kindOfPrimitive: kindOfPrimitive.boolean,
       restriction: (someBool: boolean) => {
         if(someBool) {
@@ -71,8 +65,7 @@ describe("src/main.ts", function() {
     const validBooleanWithRestriction =
       validModel(booleanWithRestriction);
 
-    const basicUserObjectStructure: objectStructure = {
-      kindOfType: kindOfType.object,
+    const basicUserObjectStructure: objectSchema = {
       properties: {
         "email": stringType,
         "password": stringType
@@ -83,8 +76,7 @@ describe("src/main.ts", function() {
     const validBasicUserObjectStructure =
       validModel(basicUserObjectStructure);
 
-    const arrayOfNumberWithCustomErrorAndRestriction: arrayStructure = {
-      kindOfType: kindOfType.array,
+    const arrayOfNumberWithCustomErrorAndRestriction: arraySchema = {
       elementType: numberWithCustomError,
       restriction: (arrayOfNumber: number[]) => {
         if(arrayOfNumber.length > 3) {
@@ -98,16 +90,14 @@ describe("src/main.ts", function() {
 
 
     // Union of 0 types, should always fail.
-    const unionOfNoTypes: unionStructure = {
-      kindOfType: kindOfType.union,
+    const unionOfNoTypes: unionSchema = {
       types: []
     };
 
     const validUnionOfNoTypes =
       validModel(unionOfNoTypes);
 
-    const unionOfPrimitives = {
-      kindOfType: kindOfType.union,
+    const unionOfPrimitives: unionSchema = {
       types: [
         stringType,
         booleanType,
@@ -118,8 +108,7 @@ describe("src/main.ts", function() {
     const validUnionOfPrimitives =
       validModel(unionOfPrimitives);
 
-    const complexObject: objectStructure = {
-      kindOfType: kindOfType.object,
+    const complexObject: objectSchema = {
       properties: {
         "somePrimitive": unionOfPrimitives,
         "arrayOfNumbers": arrayOfNumberWithCustomErrorAndRestriction
@@ -285,7 +274,7 @@ describe("src/main.ts", function() {
       mochaAssertPromiseErrorsWith(
         validUnionOfPrimitives({}),
         (error) => {
-          return error === typeError.unionHasNoMatchingType
+          return error === schemaTypeError.unionHasNoMatchingType
         },
         done
       );
