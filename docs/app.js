@@ -11267,7 +11267,7 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('kindOfPrimitive: '),
+										_krisajenkins$formatting$Formatting$s('primitiveType: '),
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
 											A2(_krisajenkins$formatting$Formatting$premap, primitiveTypeToString, _krisajenkins$formatting$Formatting$string),
@@ -11318,7 +11318,7 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('properties: {'),
+										_krisajenkins$formatting$Formatting$s('objectProperties: {'),
 										newLine)),
 								A2(
 									_krisajenkins$formatting$Formatting_ops['<>'],
@@ -11354,7 +11354,7 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('elementType: '),
+										_krisajenkins$formatting$Formatting$s('arrayElementType: '),
 										A2(
 											_krisajenkins$formatting$Formatting_ops['<>'],
 											A2(
@@ -11403,7 +11403,7 @@
 									indent1,
 									A2(
 										_krisajenkins$formatting$Formatting_ops['<>'],
-										_krisajenkins$formatting$Formatting$s('types: ['),
+										_krisajenkins$formatting$Formatting$s('unionTypes: ['),
 										newLine)),
 								A2(
 									_krisajenkins$formatting$Formatting_ops['<>'],
