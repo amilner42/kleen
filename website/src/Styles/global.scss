@@ -7,6 +7,10 @@ html, body, #main {
   background-color: white;
 }
 
+code {
+  font-size: 16px;
+}
+
 .input-error-highlight {
   border: 2px solid $error-color1 !important;
 }

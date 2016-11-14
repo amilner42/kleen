@@ -68,7 +68,32 @@
 
       .sub-bar-sub-title {
         color: $color7;
+      }
+    }
 
+    .tutorial-view {
+      color: $color7;
+      padding-top: 30px;
+      padding-bottom: 30px;
+      width: 900px;
+      margin: auto;
+      text-align: left;
+
+      .code-block {
+        margin: 20px 0 20px 20px;
+        background-color: #EEE;
+        padding: 3px 10px 3px 10px;
+        border-radius: 5px;
+        width: 750px;
+      }
+
+      .tutorial-end {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .tutorial-star-link {
+        margin-left: 10px;
       }
     }
 
