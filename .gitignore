@@ -1,5 +1,6 @@
 **/*.js
 !docs/*
+!docs/**/*.js
 node_modules/*
 lib/*
 lib_test/*
