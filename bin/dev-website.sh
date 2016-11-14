@@ -6,6 +6,14 @@
 ## deploying to github pages.
 
 
+# Delete dist and recreate directory.
+rm -rf webstite/dist;
+mkdir website/dist;
+
+# Delete and re-copy manual dependencies;
+rm -rf website/dist/manual_dependencies;
+cp -r website/manual_dependencies website/dist;
+
 cd website;
 rm -rf ./elm-stuff/build-artifcats/;
 ./node_modules/.bin/webpack --watch &
