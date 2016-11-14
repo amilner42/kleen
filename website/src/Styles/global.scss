@@ -5,6 +5,7 @@ html, body, #main {
   @include full-screen-absolute();
   font-family: 'Arvo', serif;
   background-color: white;
+  min-width: 1000px;
 }
 
 code {

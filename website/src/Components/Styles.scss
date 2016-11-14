@@ -72,12 +72,25 @@
     }
 
     .tutorial-view {
+      position: relative;
+      display: block;
       color: $color7;
       padding-top: 30px;
       padding-bottom: 30px;
       width: 900px;
+      height: calc(100vh - 240px);
+      overflow-y: hidden;
+      overflow-x: hidden;
       margin: auto;
       text-align: left;
+
+      .tutorial-view-hide-scroll {
+        position: relative;
+        width: 900px;
+        padding-right: 50px;
+        overflow-y: auto;
+        max-height:  calc(100vh - 240px);
+      }
 
       .code-block {
         margin: 20px 0 20px 20px;
