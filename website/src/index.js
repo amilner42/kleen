@@ -7,6 +7,7 @@ require("./Styles/global.scss");
 require("./Styles/mixins.scss");
 require("./Styles/variables.scss");
 require("./Components/Styles.scss");
+require('../manual_dependencies/highlight-ts/styles/atelier-cave-dark.css');
 
 // Require index.html so it gets copied to dist
 require('./index.html');
