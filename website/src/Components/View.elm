@@ -141,8 +141,137 @@ generatorView model =
 mainView : Model -> Html Msg
 mainView model =
     div
-        []
-        [ text "Development in progress..." ]
+        [ class "main-view" ]
+        [ div
+            [ class "main-center" ]
+            [ div
+                [ class "main-short-explanation" ]
+                [ text """A type and data validation library that acts as a
+                    thin layer over typescript allowing you to effortlessly
+                    extend your compile-time guarantees to runtime.
+                    """
+                ]
+            , div
+                [ class "shadow-box" ]
+                [ div
+                    [ class "step-title" ]
+                    [ text "Step 1" ]
+                , div
+                    [ class "step-box" ]
+                    [ div
+                        [ class "step-box-content-title" ]
+                        [ text "Install" ]
+                    , div
+                        [ class "step-box-body-top" ]
+                        [ text "npm install kleen --save" ]
+                    , div
+                        [ class "step-box-body-second" ]
+                        [ ul
+                            []
+                            [ li
+                                []
+                                [ text """Zero external dependencies keeps project
+                                light-weight.
+                                """ ]
+                            , li
+                                []
+                                [ text """Strongly typed package, typings work
+                                out of the box. No worrying about out of date
+                                typings.
+                                """ ]
+                            , li
+                                []
+                                [ text """Semantic versioning and a changelog
+                                make it less painful to update versions.
+                                """
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            , div
+                [ class "shadow-box center-box" ]
+                [ div
+                    [ class "step-title" ]
+                    [ text "Step 2" ]
+                , div
+                    [ class "step-box" ]
+                    [ div
+                        [ class "step-box-content-title" ]
+                        [ text "Learn" ]
+                    , div
+                        [ class "step-box-body-top read-tutorial"
+                        , onClick <| SwitchView Route.TutorialView
+                        ]
+                        [ text "read tutorial" ]
+                    , div
+                        [ class "step-box-body-second" ]
+                        [ ul
+                            []
+                            [ li
+                                []
+                                [ text """Tutorial explains entire library in
+                                    less than 15 minutes.
+                                    """ ]
+                            , li
+                                []
+                                [ text """Code examples throughout the tutorial
+                                    as well as plenty of tests show exactly how
+                                    to use the library.
+                                    """ ]
+                            , li
+                                []
+                                [ text """All code is thoroughly documented so
+                                    it's easy to read the source code.
+                                    """
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            , div
+                [ class "shadow-box" ]
+                [ div
+                    [ class "step-title" ]
+                    [ text "Step 3" ]
+                , div
+                    [ class "step-box" ]
+                    [ div
+                        [ class "step-box-content-title" ]
+                        [ text "Develop" ]
+                    , div
+                        [ class "step-box-body-top read-tutorial"
+                        , onClick <| SwitchView Route.GeneratorView
+                        ]
+                        [ text "generate schemas" ]
+                    , div
+                        [ class "step-box-body-second" ]
+                        [ ul
+                            []
+                            [ li
+                                []
+                                [ text """Copy paste your typescript types and
+                                interfaces into the generator and automatically
+                                get kleen schemas.
+                                    """
+                                ]
+                            , li
+                                []
+                                [ text """Effortlessly add sync and async data
+                                    validations across your schemas without
+                                    worrying about promise chains and correct
+                                    ordering.
+                                    """
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            , div
+                [ class "main-bottom-title" ]
+                [ text "Simple. Powerful. Kleen." ]
+            ]
+        ]
 
 
 {-| The tutorial view for introducing new users.
