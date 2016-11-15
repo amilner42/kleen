@@ -45,12 +45,19 @@ navBar route =
             [ text "Generator" ]
         , div
             [ class "nav-bar-link-to-me-text" ]
-            [ text "Created by "
-            , a
+            [ a
                 [ href "https://github.com/amilner42"
                 , class "nav-bar-link-to-me-link"
                 ]
-                [ text "amilner42" ]
+                [ text "Follow me on Github" ]
+            , div
+                []
+                []
+            , a
+                [ class "nav-bar-link-to-code"
+                , href "https://github.com/amilner42/kleen"
+                ]
+                [ text "Star Project" ]
             ]
         ]
 

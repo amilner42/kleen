@@ -12352,7 +12352,6 @@
 						]),
 					_elm_lang$core$Native_List.fromArray(
 						[
-							_elm_lang$html$Html$text('Created by '),
 							A2(
 							_elm_lang$html$Html$a,
 							_elm_lang$core$Native_List.fromArray(
@@ -12362,7 +12361,24 @@
 								]),
 							_elm_lang$core$Native_List.fromArray(
 								[
-									_elm_lang$html$Html$text('amilner42')
+									_elm_lang$html$Html$text('Follow me on Github')
+								])),
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[]),
+							_elm_lang$core$Native_List.fromArray(
+								[])),
+							A2(
+							_elm_lang$html$Html$a,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('nav-bar-link-to-code'),
+									_elm_lang$html$Html_Attributes$href('https://github.com/amilner42/kleen')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html$text('Star Project')
 								]))
 						]))
 				]));

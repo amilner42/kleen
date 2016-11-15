@@ -47,15 +47,16 @@ code {
     margin-left: 15px; }
     .base-component-wrapper .base-component .nav-bar .nav-bar-item:hover {
       cursor: pointer; }
+  .base-component-wrapper .base-component .nav-bar .nav-bar-link-to-code {
+    float: right; }
   .base-component-wrapper .base-component .nav-bar .nav-bar-link-to-me-text {
     position: relative;
     display: inline-block;
-    width: 150px;
     float: right;
     font-size: 14px;
     margin-top: 5px;
-    margin-right: 10px; }
-  .base-component-wrapper .base-component .nav-bar .nav-bar-link-to-me-link {
+    padding-right: 10px; }
+  .base-component-wrapper .base-component .nav-bar .nav-bar-link-to-me-link, .base-component-wrapper .base-component .nav-bar .nav-bar-link-to-code {
     color: white; }
 
 .base-component-wrapper .base-component .sub-bar {
@@ -106,13 +107,13 @@ code {
   .base-component-wrapper .base-component .generator-view textarea {
     position: relative;
     display: inline-block;
-    width: 500px;
+    width: 475px;
     height: 500px;
     resize: none; }
   .base-component-wrapper .base-component .generator-view .input-text-area {
-    margin-right: 25px; }
+    margin-right: 10px; }
   .base-component-wrapper .base-component .generator-view .output-text-area {
-    margin-left: 25px; }
+    margin-left: 10px; }
   .base-component-wrapper .base-component .generator-view .text-areas {
     margin-top: 25px;
     width: 100%;
