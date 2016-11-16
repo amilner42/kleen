@@ -23,8 +23,16 @@ export interface baseSchema {
  * union schemas (because in a union, each individual schema should have it's
  * own restrictions).
  */
-export interface restrictableSchema extends baseSchema {
+export interface restrictable {
   restriction?: restriction;
+}
+
+/**
+ * A named schema is a schema that is allowed to give itself a name which can
+ * then be used for recursiveness.
+ */
+export interface nameable {
+  name?: string;
 }
 
 
@@ -38,7 +46,8 @@ export enum kindOfSchema {
   primitive,
   array,
   union,
-  object
+  object,
+  reference
 }
 
 
@@ -74,7 +83,38 @@ export type typeSchema
   = primitiveSchema
   | arraySchema
   | unionSchema
-  | objectSchema;
+  | objectSchema
+  | referenceSchema;
+
+
+/**
+ * A reference type references another type defined "above" in the schema.
+ *
+ * Reference types are special in that they do not parralel to one of
+ * typescript's types the way the other types do, but it does parralel over to
+ * typescript none-the-less. In typescript you are allowed to reference
+ * yourself inside yourself, this is essential. Eg.
+ *
+ *  interface x {
+ *    bla: x
+ *  }
+ *
+ * You can't do this in Javascript objects (the inner x will be undefined at
+ * runtime), so we need a mechanism to recreate that nice typescript feature,
+ * hence referenceTypes.
+ *
+ * ReferenceTypes are also unique in that they are not only allowed to reference
+ * another type, they are allowed to overwrite any of their properties outside
+ * of their actual type (eg. a referenceType can specify `allowNull` which will
+ * overwrite whatever was specified in the object itself). If you don't want
+ * to change any of the additional properties, simply don't specify them.
+ */
+export interface referenceSchema extends baseSchema, restrictable {
+  /**
+   * The name of the object we are referencing.
+   */
+  referenceName: string;
+}
 
 
 /**
@@ -82,7 +122,7 @@ export type typeSchema
 *
 * NOTE: This maps over to an `interface` from typescript.
 */
-export interface objectSchema extends restrictableSchema {
+export interface objectSchema extends baseSchema, restrictable, nameable {
   /**
    * The properties on the interface.
    */
@@ -98,7 +138,7 @@ export interface objectSchema extends restrictableSchema {
 /**
  * A formal representation of the structure of a primitive.
  */
-export interface primitiveSchema extends restrictableSchema {
+export interface primitiveSchema extends baseSchema, restrictable {
   /**
    * Specifiying which `kindOfPrimitive` it is.
    */
@@ -114,7 +154,7 @@ export interface primitiveSchema extends restrictableSchema {
  * determined from the restrictions placed on the `arrayElementType`
  * `typeSchema`.
  */
-export interface arraySchema extends restrictableSchema {
+export interface arraySchema extends baseSchema, restrictable, nameable {
   /**
    * The type of a single element in the array.
    */
@@ -128,7 +168,7 @@ export interface arraySchema extends restrictableSchema {
  * NOTE: A union has no restrictions because the restrcitions will be
  * present on each individual type in the union.
  */
-export interface unionSchema extends baseSchema {
+export interface unionSchema extends baseSchema, nameable {
   /**
    * A union of all the types in `typeSchema`.
    */
@@ -148,5 +188,6 @@ export enum schemaTypeError {
   arrayFieldInvalid,
   objectFieldInvalid,
   objectHasExtraFields,
-  unionHasNoMatchingType
+  unionHasNoMatchingType,
+  referenceNotFound
 }
