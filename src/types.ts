@@ -167,8 +167,12 @@ export interface arraySchema extends baseSchema, restrictable, nameable {
  *
  * NOTE: A union has no restrictions because the restrcitions will be
  * present on each individual type in the union.
+ *
+ * NOTE: A union is not nameable because using a union for recursive purposes
+ *       can result in infinite expansion. With a union we validate against the
+ *       same modelInstance, so the type itself just repeatedly unravels.
  */
-export interface unionSchema extends baseSchema, nameable {
+export interface unionSchema extends baseSchema {
   /**
    * A union of all the types in `typeSchema`.
    */

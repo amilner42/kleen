@@ -52,7 +52,7 @@ const mergeSchemas = (referencingSchema: typeSchema, referenceSchema: referenceS
   // These properties can be over-written.
   const overWriteableProperties = [
     "nullAllowed",
-    "undefinedAllow",
+    "undefinedAllowed",
     "typeFailureError",
     "restriction"
   ];
@@ -62,13 +62,52 @@ const mergeSchemas = (referencingSchema: typeSchema, referenceSchema: referenceS
 
   // Overwrite overwritable properties of newSchema.
   overWriteableProperties.map((propertyName: string) => {
-    if(referenceSchema[propertyName] != undefined) {
+    if(referenceSchema[propertyName] !== undefined) {
       newSchema[propertyName] = referenceSchema[propertyName];
     }
   });
 
   return newSchema;
 };
+
+/**
+ * Figures out which type `typeSchema` is by checking which of the unique
+ * properties it has (eg. `arrayElementType`), if it does not have exactly one
+ * unique property, null is returned.
+ */
+const getTypeOfSchema = (typeSchema: typeSchema) => {
+
+  const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
+  const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
+  const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
+  const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
+  const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
+
+  const kindOfTypeSchema =
+    (isObject && !isArray && !isPrimitive && !isUnion && !isReference)
+      ?
+        kindOfSchema.object
+      :
+        (!isObject && isArray && !isPrimitive && !isUnion && !isReference)
+          ?
+            kindOfSchema.array
+          :
+            (!isObject && !isArray && isPrimitive && !isUnion && !isReference)
+              ?
+                kindOfSchema.primitive
+              :
+                (!isObject && !isArray && !isPrimitive && isUnion && !isReference)
+                  ?
+                    kindOfSchema.union
+                  :
+                    (!isObject && !isArray && !isPrimitive && !isUnion && isReference)
+                    ?
+                      kindOfSchema.reference
+                    :
+                      null;
+
+  return kindOfTypeSchema;
+}
 
 
 /**
@@ -118,69 +157,43 @@ const validModelInternal = (typeSchema: typeSchema
         })
       }
 
-      // Check for null/undefined, this doesn't depend on the `kindOfType`.
-      {
-        if(isNull(modelInstance)) {
-          if(typeSchema.nullAllowed) {
-            return resolve();
-          }
-
-          return reject(
-            typeSchema.typeFailureError ||
-            schemaTypeError.nullField
-          );
-        }
-
-        if(isUndefined(modelInstance)) {
-          if(typeSchema.undefinedAllowed) {
-            return resolve();
-          }
-
-          return reject(
-            typeSchema.typeFailureError ||
-            schemaTypeError.undefinedField
-          );
-        }
-      }
-
-      // Figure out type of object. If the type is invalid, reject with a
-      // `invalid schema` error, if you use typescript then these errors will
-      // never occur.
-      const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
-      const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
-      const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
-      const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
-      const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
-
       // To avoid boilerplate, we don't force the user to specify the
       // `kindOfTypeSchema` and instead manually resolve it at runtime.
-      const kindOfTypeSchema =
-        (isObject && !isArray && !isPrimitive && !isUnion && !isReference)
-          ?
-            kindOfSchema.object
-          :
-            (!isObject && isArray && !isPrimitive && !isUnion && !isReference)
-              ?
-                kindOfSchema.array
-              :
-                (!isObject && !isArray && isPrimitive && !isUnion && !isReference)
-                  ?
-                    kindOfSchema.primitive
-                  :
-                    (!isObject && !isArray && !isPrimitive && isUnion && !isReference)
-                      ?
-                        kindOfSchema.union
-                      :
-                        (!isObject && !isArray && !isPrimitive && !isUnion && isReference)
-                        ?
-                          kindOfSchema.reference
-                        :
-                          undefined;
+      const kindOfTypeSchema = getTypeOfSchema(typeSchema);
 
-      // If it's not a valid schema, we throw an `invalidSchema` error.
-      if(isUndefined(kindOfTypeSchema)) {
-        return Promise.reject(schemaTypeError.invalidSchema);
+      // If it's not a kind of type then we throw an `invalidSchema` error.
+      if(isNull(kindOfTypeSchema)) {
+        return reject(schemaTypeError.invalidSchema);
       };
+
+      // Check for null/undefined, this doesn't depend on the `kindOfType`
+      // unless it is a reference, in which case we don't do the check because
+      // the reference still needs to be unravelled.
+      {
+        if(kindOfTypeSchema !== kindOfSchema.reference) {
+          if(isNull(modelInstance)) {
+            if(typeSchema.nullAllowed) {
+              return resolve();
+            }
+
+            return reject(
+              typeSchema.typeFailureError ||
+              schemaTypeError.nullField
+            );
+          }
+
+          if(isUndefined(modelInstance)) {
+            if(typeSchema.undefinedAllowed) {
+              return resolve();
+            }
+
+            return reject(
+              typeSchema.typeFailureError ||
+              schemaTypeError.undefinedField
+            );
+          }
+        }
+      }
 
       // Handle 5 cases depending on the `kindOfSchema`.
       switch(kindOfTypeSchema) {
@@ -234,7 +247,7 @@ const validModelInternal = (typeSchema: typeSchema
           // Casting for better inference.
           const objectStructure = typeSchema as objectSchema;
 
-          if(typeof modelInstance != "object") {
+          if(typeof modelInstance !== "object") {
             return reject(
               objectStructure.typeFailureError ||
               schemaTypeError.objectFieldInvalid
@@ -276,14 +289,11 @@ const validModelInternal = (typeSchema: typeSchema
           // Casting for better inference.
           const unionStructure = typeSchema as unionSchema;
 
-          const newReferences =
-            createNewReferenceAccumulator(references, unionStructure);
-
           return anyPromise(
             unionStructure.unionTypes.map((singleTypeFromUnion: typeSchema) => {
 
               const validUnionType =
-                validModelInternal(singleTypeFromUnion, newReferences);
+                validModelInternal(singleTypeFromUnion, references);
 
               return validUnionType(modelInstance);
             })
@@ -307,7 +317,7 @@ const validModelInternal = (typeSchema: typeSchema
           // If the reference is not in accumulator, throw error. Should only
           // happen to people in development (assuming they have tests).
           if(!referencingStructure) {
-            return Promise.reject(
+            return reject(
               schemaTypeError.referenceNotFound
             );
           }
@@ -317,7 +327,9 @@ const validModelInternal = (typeSchema: typeSchema
           const referenceActualTypeSchema =
             mergeSchemas(referencingStructure, referenceStructure);
 
-          return validModelInternal(referenceActualTypeSchema, references)(modelInstance);
+          return resolve(
+            validModelInternal(referenceActualTypeSchema, references)(modelInstance)
+          );
         }
       }
     });
