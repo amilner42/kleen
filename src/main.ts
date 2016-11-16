@@ -112,7 +112,7 @@ const getTypeOfSchema = (typeSchema: typeSchema) => {
  *              adding them as we go through an object.
  */
 const validModelInternal = (typeSchema: typeSchema
-    , references: {}): ((any) => Promise<void>) => {
+    , references: referenceAcc): ((any) => Promise<void>) => {
 
   return (modelInstance: any): Promise<void> => {
 
@@ -186,6 +186,13 @@ const validModelInternal = (typeSchema: typeSchema
             );
           }
         }
+      }
+
+      // If a `withContext` exists, we need to update our references. As per
+      // usual we make a shallow copy to avoid messing with any other objects
+      // pointing at the same reference.
+      if(typeSchema.withContext) {
+        references = Object.assign({}, references, typeSchema.withContext());
       }
 
       // Handle 5 cases depending on the `kindOfSchema`.
