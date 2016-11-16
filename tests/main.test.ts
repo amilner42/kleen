@@ -871,6 +871,26 @@ describe("src/main.ts", function() {
       nullAllowed: true
     };
 
+    const referenceSchemaWithContext: referenceSchema = {
+      referenceName: "primitive",
+      withContext: () => {
+        return {
+          "primitive": stringType
+        }
+      }
+    };
+
+    const validReferenceSchemaWithContext =
+      validModel(referenceSchemaWithContext);
+
+    it('should allow you to reference things in withContext', function(done) {
+
+      mochaAssertPromiseResovles(
+        validReferenceSchemaWithContext("some string"),
+        done
+      );
+    });
+
     const mutualB: objectSchema = {
       objectProperties: {
         propertyB: numberType,
