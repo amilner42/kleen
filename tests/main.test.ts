@@ -858,5 +858,98 @@ describe("src/main.ts", function() {
       );
     });
 
+    const mutualA: objectSchema = {
+      objectProperties: {
+        propertyA: stringType,
+        mutualReference: { referenceName: "mutualB" }
+      },
+      withContext: () => {
+        return {
+          "mutualB": mutualB
+        };
+      },
+      nullAllowed: true
+    };
+
+    const mutualB: objectSchema = {
+      objectProperties: {
+        propertyB: numberType,
+        mutualReference: mutualA,
+      },
+      nullAllowed: true
+    };
+
+    const validMutualA =
+      validModel(mutualA);
+
+    const validMutualB =
+      validModel(mutualB);
+
+    it('should allow valid mutually recursive objects', function(done) {
+
+      const validMutuallyRecursiveObjects = [
+        null,
+        {
+          propertyA: "bla",
+          mutualReference: null
+        },
+        {
+          propertyA: "",
+          mutualReference: {
+            propertyB: 5,
+            mutualReference: null
+          }
+        },
+        {
+          propertyA: "",
+          mutualReference: {
+            propertyB: 5,
+            mutualReference: {
+              propertyA: "asdf",
+              mutualReference: null
+            }
+          }
+        }
+      ];
+
+      mochaAssertPromiseResovles(
+        Promise.all(validMutuallyRecursiveObjects.map(validMutualA)),
+        done
+      );
+    });
+
+    it('should not allow invalid mutally recursive functions', function(done) {
+
+      const invalidMutuallyRecursiveObjects = [
+        undefined,
+        {
+          propertyA: "asdf",
+          mutualReference: undefined
+        },
+        {
+          propertyA: "",
+          mutualReference: {
+            propertyB: 5,
+            mutualReference: undefined
+          }
+        },
+        {
+          propertyA: "",
+          mutualReference: {
+            propertyB: 5,
+            mutualReference: {
+              propertyA: "",
+              mutualReference: undefined
+            }
+          }
+        }
+      ];
+
+      mochaAssertPromiseErrors(
+        anyPromise(invalidMutuallyRecursiveObjects.map(validMutualA)),
+        done
+      );
+    });
+
   });
 });

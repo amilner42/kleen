@@ -8,17 +8,10 @@ import {
   referenceSchema,
   primitiveSchema,
   restriction,
-  schemaTypeError
+  schemaTypeError,
+  referenceAcc
  } from "./types";
 import { isNull, isUndefined, anyPromise } from "./util";
-
-
-/**
- * Maps the reference names to there schema. (Acc == accumulator)
- */
-type referenceAcc = {
-  [referenceName: string]: typeSchema
-}
 
 
 /**

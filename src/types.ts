@@ -2,6 +2,14 @@
 
 
 /**
+ * Maps the reference names to there schema. (Acc == accumulator)
+ */
+export interface referenceAcc {
+  [referenceName: string]: typeSchema
+}
+
+
+/**
  * A `schema` is a thin layer over a Typescript `type`.
  *
  * Every schema should extend `baseSchema` so that it specifies:
@@ -9,11 +17,16 @@
  *     the same as the restriction failing).
  *   - [Optionally] Specify that null is allowed, by default it is not.
  *   - [Optionally] Specify that undefined is allowed, by default it is not.
+ *   - [Optionally] Specify a context to run the function in. This should be
+ *                  used exclusively for mutual recursion. Wrapping the
+ *                  referenceAcc in a function allows you to reference things
+ *                  not yet defined (required for mutual recursion).
  */
 export interface baseSchema {
   typeFailureError?: any;
   nullAllowed?: boolean;
   undefinedAllowed?: boolean;
+  withContext?: () => referenceAcc;
 }
 
 
