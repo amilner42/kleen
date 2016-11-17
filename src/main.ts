@@ -47,7 +47,8 @@ const mergeSchemas = (referencingSchema: typeSchema, referenceSchema: referenceS
     "nullAllowed",
     "undefinedAllowed",
     "typeFailureError",
-    "restriction"
+    "restriction",
+    "withContext"
   ];
 
   // Shallow clone.
