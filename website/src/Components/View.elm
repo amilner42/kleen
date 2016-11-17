@@ -117,6 +117,9 @@ generatorView model =
     div
         [ class "generator-view" ]
         [ div
+            [ class "generator-warning" ]
+            [ text "WARNING: GENERATOR STILL UNDER HEAVY DEVELOPMENT" ]
+        , div
             [ class "text-areas" ]
             [ textarea
                 [ class "input-text-area"
@@ -211,7 +214,7 @@ mainView model =
                             [ li
                                 []
                                 [ text """Tutorial explains entire library in
-                                    less than 15 minutes.
+                                    less than 20 minutes.
                                     """ ]
                             , li
                                 []
@@ -368,8 +371,9 @@ aValidString(undefined);    // No
 kleen.objectSchema    // Good old regular { ... }
 kleen.arraySchema     // Can't forget about [...]
 kleen.unionSchema     // And lastly union types!
+kleen.referenceSchema // Enables recursion.
                 """
-                , text """These 4 building blocks compose how we describe our data.
+                , text """These 5 building blocks compose how we describe our data.
             If you got the epiphany that this maps over to typescript, that's
             because it does. One of the core ideas behind this library is to
             take the typescript compile times guarantees and extend them to
@@ -384,7 +388,7 @@ kleen.unionSchema     // And lastly union types!
 }
                 """
                 , text """ Of course sub properties could be object themselves, in
-            fact they could be any of the 4 possible schemas listed above; the
+            fact they could be any of the 5 possible schemas listed above; the
             schemas are our building blocks.
 
             Here is an example of an array model, this is an array at root
@@ -412,7 +416,9 @@ const invalidArray3 = [ { somePropertyName: true }];
 const invalidArray4 = [ { somePropertyName: 43, extraProperty: "uhoh" }];
 const invalidArray5 = [ { }];
                 """
-                , text "Ok, so the only thing you haven't seen me use is a `unionSchema`."
+                , text """Ok, so you haven't seen me use a unionSchema or a
+                    referenceSchema. Let's fix that.
+                    """
                 , codeBlock
                     """const numberOrBoolSchema: kleen.unionSchema = {
     unionTypes: [
@@ -427,13 +433,124 @@ const invalidArray5 = [ { }];
 
 // Easy as that, you just specify all the `unionTypes`. In the case
 // above both `5` and `true` would be valid models. A neat thing about union
-// types is that we will to validate the models all at the same time (remember
+// types is that we will validate the models all at the same time (remember
 // all validation is async) and if any succeed we short circuit to that
 // success case. All this async ordering is done for you, you don't need to
 // worry about it at all.
                 """
-                , text """Well there you go, you now know how to validate basically
-            any structure, you could now extend your typescript compile time
+                , text """Ok, so you've seen 4 schemas so far, those all map to
+                typescript in a very obvious way. The only remaining schema,
+                referenceSchema, also maps to typescript, but it's a bit less
+                obvious. The best way to explain is with code:
+                    """
+                , codeBlock """// So in typescript the following is valid.
+interface x {
+    propertyName: x
+}
+
+// This is of course extremely important, we need to be able to define
+// recursive structures. Ok so let's parralel this to a kleen schema.
+
+const xSchema: objectSchema = {
+    objectProperties: {
+        propertyName: xSchema  // error, xSchema not defined.
+    }
+}
+
+// Well shit. This isn't going to work, you can't have data be recursive
+// because it would expand infinitely. How do we do recursion with kleen!
+// ReferenceSchemas...
+
+const xSchema: objectSchema = {
+    name: "xSchema", // we add a name so we can refer to it recursively.
+    objectProperties: {
+        propertyName: { referenceName: "xSchema"}
+    }
+}
+
+// And there you go, now we have recursion the same way as typescript! You
+// can always reference things that are in "block scope", eg here propertyName
+// could reference xSchema because propertyName is inside of xSchema. Not
+// only are you allowed to reference things recursively, you can overwrite
+// their additional fields, eg we could do:
+
+const xSchema: objectSchema = {
+    name: "xSchema", // we add a name so we can refer to it recursively.
+    objectProperties: {
+        propertyName: {
+            referenceName: "xSchema",
+            allowUndefined: true
+        }
+    }
+}
+
+// This is very handy, because we often will need to make slight modifications
+// to the things we want to recurse over. Eg. In the example above it's
+// essential to turn on nullAllowed or undefinedAllowed because otherwise no
+// object will ever be valid (you'd need an infinitely big object). You don't
+// need to overwrite any properties, it's just an optional handy feature
+// that's good to know about.
+
+// Ok so recursion is easy, what about mutual recursion eg.
+
+interface y {
+    property: x;
+}
+
+interface x {
+    property: y;
+}
+
+// This should be easy right?
+
+const xSchema: objectSchema = {
+    objectProperties: {
+        property: ySchema; // error, what's ySchema
+    }
+}
+
+const ySchema: objectSchema = {
+    objectProperties: {
+        property: xSchema; // totally fine
+    }
+}
+
+// Shit!!! No matter which way we order it, one of the schemas won't know
+// about the other one, the trouble of working with data...This sucks, we may
+// have mutually recursive objects we want to validate! Spoiler alert, there
+// is a way:
+
+const xSchema: objectSchema = {
+    objectProperties: {
+        property: { referenceName: "ySchema"};
+    },
+    // Here we provide a context, where the key is the name of the reference
+    // and the the value is the schema. We will be allowed to use these
+    // references in our schema, hence it's changing the "context".
+    withContext: () => {
+        // It's totally fine to reference ySchema here because it's wrapped in
+        // a function. This is why withContext is wrapped in a function! To
+        // allow you to refer to things that don't exist yet and hence solve
+        // the issue of mutual recursion.
+        return {
+            ySchema: ySchema // totally fine
+        }
+    }
+}
+
+const ySchema: objectSchema = {
+    objectProperties: {
+        property: xSchema; // totally fine
+    }
+}
+
+// Well there you go, using references for recursion and references in
+// combination with withContext for mutualRecursion, we can support the same
+// types as typescript.
+                    """
+                , text """Awesome! You now know how to validate
+            basically any structure (even recursive or mutually recursive ones!)
+            , you could now extend your typescript compile time
             guarantees to runtime validation. In fact if you head over to the
             generator, you could do that automatically, you give the generator
             types/interfaces and it spits out the kleen schemas for you!
@@ -445,7 +562,7 @@ const invalidArray5 = [ { }];
                     [ text """
                 But hold your horses captain, there's more. What if we don't only
                 care that the type is correct, but also some restrictions are met,
-                perhaps the passwod has to be longer than 85 characters?
+                perhaps the password has to be longer than 85 characters?
                 """
                     ]
                 , codeBlock
