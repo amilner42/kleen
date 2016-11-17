@@ -118,9 +118,9 @@ export type typeSchema
  *
  * ReferenceTypes are also unique in that they are not only allowed to reference
  * another type, they are allowed to overwrite any of their properties outside
- * of their actual type (eg. a referenceType can specify `allowNull` which will
- * overwrite whatever was specified in the object itself). If you don't want
- * to change any of the additional properties, simply don't specify them.
+ * of their actual type (eg. a referenceType can specify `nullAllowed` which
+ * will overwrite whatever was specified in the object itself). If you don't
+ * want to change any of the additional properties, simply don't specify them.
  */
 export interface referenceSchema extends baseSchema, restrictable {
   /**

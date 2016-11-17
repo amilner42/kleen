@@ -69,7 +69,7 @@ describe("src/main.ts", function() {
     const validStringOrNullOrUndefined =
       validModel(stringAllowingNullOrUndefined);
 
-    it('should allow null if allowNull is set', function(done) {
+    it('should allow null if nullAllowed is set', function(done) {
       mochaAssertPromiseResovles(validStringOrNullOrUndefined(null), done);
     });
 
