@@ -229,6 +229,15 @@
         resize: none;
       }
 
+      .generator-warning {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+        margin: 15px auto 0 auto;
+        text-align: center;
+        color: $warning-color1;
+      }
+
       .input-text-area {
         margin-right: 10px;
       }

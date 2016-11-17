@@ -6,7 +6,7 @@
 
 # Build projects.
 ./node_modules/.bin/tsc;
-./node_modules/.bin/babel . --out-dir lib_test --ignore lib,node_modules,lib_test;
+./node_modules/.bin/babel . --out-dir lib_test --ignore lib,node_modules,lib_test,website,docs;
 
 # Clean up un-needed files.
 rm src/*.js tests/*.js tests/*.d.ts;

@@ -184,6 +184,13 @@ code {
     width: 475px;
     height: 500px;
     resize: none; }
+  .base-component-wrapper .base-component .generator-view .generator-warning {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin: 15px auto 0 auto;
+    text-align: center;
+    color: orange; }
   .base-component-wrapper .base-component .generator-view .input-text-area {
     margin-right: 10px; }
   .base-component-wrapper .base-component .generator-view .output-text-area {

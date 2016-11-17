@@ -13,7 +13,7 @@ export const isNullOrUndefined = (thing: any) => {
  * Returns true if `thing` is null.
  */
 export const isNull = (thing: any) => {
-  return thing == null;
+  return thing === null;
 }
 
 
@@ -21,7 +21,7 @@ export const isNull = (thing: any) => {
  * Returns true if `thing` is undefined.
  */
 export const isUndefined = (thing: any) => {
-  return thing == undefined;
+  return thing === undefined;
 }
 
 

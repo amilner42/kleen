@@ -5,38 +5,115 @@ import {
   arraySchema,
   objectSchema,
   unionSchema,
+  referenceSchema,
   primitiveSchema,
   restriction,
-  schemaTypeError
+  schemaTypeError,
+  referenceAcc
  } from "./types";
 import { isNull, isUndefined, anyPromise } from "./util";
 
 
 /**
- * Export types used in library so that a user can create their own
- * `typeSchema`s (and have them be type checked).
+ * Creates a new refrence accumulator if the typeSchema is named with the new
+ * schema. References with the same name will overwrite previous references.
+ *
+ * NOTE: While this creates a new object, it only does a shallow copy so all
+ *       references still point to the same typeSchemas.
  */
-export * from "./types";
+const createNewReferenceAccumulator = (currentReferenceAccumulator: referenceAcc
+    , typeSchema: typeSchema): referenceAcc => {
+
+  if(!typeSchema["name"]) {
+    return currentReferenceAccumulator;
+  }
+
+  // Shallow copy and add new reference.
+  const newReferenceAccumulator = Object.assign(
+    {}, currentReferenceAccumulator, { [typeSchema["name"]]: typeSchema }
+  );
+
+  return newReferenceAccumulator;
+}
 
 
 /**
- * Asserts that a model is valid according to a schema.
- *
- * A valid model means:
- *  - No extra properties are present anywhere in the model.
- *  - All neccessary properties are present.
- *  - Every property has the correct type
- *  - All restrictions are met for that property.
- *
- * @param typeSchema A representation of a valid model.
- * @param modelInstance An instane of the model being validified
- * @returns Promise<void>, if the promise was `resolve`d, the model is valid,
- *          if the promise was `reject`ed, there was an error.
- *
- * NOTE: The function is curried. This allows you to build your validifiers once
- *       and use them all over your code (keep it DRY).
+ * A reference is allowed to overwrite properties in the object that it is
+ * referencing, that logic is implemented here.
  */
-export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => {
+const mergeSchemas = (referencingSchema: typeSchema, referenceSchema: referenceSchema): typeSchema => {
+  // These properties can be over-written.
+  const overWriteableProperties = [
+    "nullAllowed",
+    "undefinedAllowed",
+    "typeFailureError",
+    "restriction",
+    "withContext"
+  ];
+
+  // Shallow clone.
+  let newSchema = Object.assign({}, referencingSchema);
+
+  // Overwrite overwritable properties of newSchema.
+  overWriteableProperties.map((propertyName: string) => {
+    if(referenceSchema[propertyName] !== undefined) {
+      newSchema[propertyName] = referenceSchema[propertyName];
+    }
+  });
+
+  return newSchema;
+};
+
+/**
+ * Figures out which type `typeSchema` is by checking which of the unique
+ * properties it has (eg. `arrayElementType`), if it does not have exactly one
+ * unique property, null is returned.
+ */
+const getTypeOfSchema = (typeSchema: typeSchema) => {
+
+  const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
+  const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
+  const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
+  const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
+  const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
+
+  const kindOfTypeSchema =
+    (isObject && !isArray && !isPrimitive && !isUnion && !isReference)
+      ?
+        kindOfSchema.object
+      :
+        (!isObject && isArray && !isPrimitive && !isUnion && !isReference)
+          ?
+            kindOfSchema.array
+          :
+            (!isObject && !isArray && isPrimitive && !isUnion && !isReference)
+              ?
+                kindOfSchema.primitive
+              :
+                (!isObject && !isArray && !isPrimitive && isUnion && !isReference)
+                  ?
+                    kindOfSchema.union
+                  :
+                    (!isObject && !isArray && !isPrimitive && !isUnion && isReference)
+                    ?
+                      kindOfSchema.reference
+                    :
+                      null;
+
+  return kindOfTypeSchema;
+}
+
+
+/**
+ * Valid model internal allows us to pass parameters in the recursion that we
+ * don't want to show the user. For now we use the following accumulators:
+ *
+ * `references`: An object where the keys are names and the values are
+ *              typeSchemas. This is how we handle references internally,
+ *              adding them as we go through an object.
+ */
+const validModelInternal = (typeSchema: typeSchema
+    , references: referenceAcc): ((any) => Promise<void>) => {
 
   return (modelInstance: any): Promise<void> => {
 
@@ -74,69 +151,55 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
         })
       }
 
-      // Check for null/undefined, this doesn't depend on the `kindOfType`.
+      // To avoid boilerplate, we don't force the user to specify the
+      // `kindOfTypeSchema` and instead manually resolve it at runtime.
+      const kindOfTypeSchema = getTypeOfSchema(typeSchema);
+
+      // If it's not a kind of type then we throw an `invalidSchema` error.
+      if(isNull(kindOfTypeSchema)) {
+        return reject(schemaTypeError.invalidSchema);
+      };
+
+      // Check for null/undefined, this doesn't depend on the `kindOfType`
+      // unless it is a reference, in which case we don't do the check because
+      // the reference still needs to be unravelled.
       {
-        if(isNull(modelInstance)) {
-          if(typeSchema.nullAllowed) {
-            return resolve();
+        if(kindOfTypeSchema !== kindOfSchema.reference) {
+          if(isNull(modelInstance)) {
+            if(typeSchema.nullAllowed) {
+              return resolve();
+            }
+
+            return reject(
+              typeSchema.typeFailureError ||
+              schemaTypeError.nullField
+            );
           }
 
-          return reject(
-            typeSchema.typeFailureError ||
-            schemaTypeError.nullField
-          );
-        }
+          if(isUndefined(modelInstance)) {
+            if(typeSchema.undefinedAllowed) {
+              return resolve();
+            }
 
-        if(isUndefined(modelInstance)) {
-          if(typeSchema.undefinedAllowed) {
-            return resolve();
+            return reject(
+              typeSchema.typeFailureError ||
+              schemaTypeError.undefinedField
+            );
           }
-
-          return reject(
-            typeSchema.typeFailureError ||
-            schemaTypeError.undefinedField
-          );
         }
       }
 
-      // Figure out type of object. If the type is invalid, reject with a
-      // `invalid schema` error, if you use typescript then these errors will
-      // never occur.
-      const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
-      const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
-      const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
-      const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
+      // If a `withContext` exists, we need to update our references. As per
+      // usual we make a shallow copy to avoid messing with any other objects
+      // pointing at the same reference.
+      if(typeSchema.withContext) {
+        references = Object.assign({}, references, typeSchema.withContext());
+      }
 
-      // To avoid boilerplate, we don't force the user to specify the
-      // `kindOfTypeSchema` and instead manually resolve it at runtime.
-      const kindOfTypeSchema =
-        (isObject && !isArray && !isPrimitive && !isUnion)
-          ?
-            kindOfSchema.object
-          :
-            (!isObject && isArray && !isPrimitive && !isUnion)
-              ?
-                kindOfSchema.array
-              :
-                (!isObject && !isArray && isPrimitive && !isUnion)
-                  ?
-                    kindOfSchema.primitive
-                  :
-                    (!isObject && !isArray && !isPrimitive && isUnion)
-                      ?
-                        kindOfSchema.union
-                      :
-                          undefined;
-
-      // If it's not a valid schema, we throw an `invalidSchema` error.
-      if(isUndefined(kindOfTypeSchema)) {
-        return Promise.reject(schemaTypeError.invalidSchema);
-      };
-
-      // Handle 4 cases depending on the `kindOfSchema`.
+      // Handle 5 cases depending on the `kindOfSchema`.
       switch(kindOfTypeSchema) {
 
-        case kindOfSchema.primitive:
+        case kindOfSchema.primitive: {
           // Cast for better inference.
           const primitiveStructure = typeSchema as primitiveSchema;
           const primitiveTypeStringName =
@@ -150,8 +213,9 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
             primitiveStructure.typeFailureError ||
             schemaTypeError.primitiveFieldInvalid
           );
+        }
 
-        case kindOfSchema.array:
+        case kindOfSchema.array: {
           // Casting for better inference.
           const arrayStructure = typeSchema as arraySchema;
           if(!Array.isArray(modelInstance)) {
@@ -160,9 +224,15 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
               schemaTypeError.arrayFieldInvalid
             );
           } else {
+            const newReferences =
+              createNewReferenceAccumulator(references, arrayStructure);
+
+            const validArrayElement =
+              validModelInternal(arrayStructure.arrayElementType, newReferences);
+
             return Promise.all(
               modelInstance.map((arrayElement: any) => {
-                return validModel(arrayStructure.arrayElementType)(arrayElement);
+                return validArrayElement(arrayElement);
               })
             )
             .then(() => {
@@ -172,12 +242,13 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
               return reject(error);
             });
           }
+        }
 
-        case kindOfSchema.object:
+        case kindOfSchema.object: {
           // Casting for better inference.
           const objectStructure = typeSchema as objectSchema;
 
-          if(typeof modelInstance != "object") {
+          if(typeof modelInstance !== "object") {
             return reject(
               objectStructure.typeFailureError ||
               schemaTypeError.objectFieldInvalid
@@ -194,9 +265,17 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
             }
           }
 
+          const newReferences =
+            createNewReferenceAccumulator(references, objectStructure);
+
           return Promise.all(
             Object.keys(objectStructure.objectProperties).map((key: string) => {
-              return validModel(objectStructure.objectProperties[key])(modelInstance[key]);
+
+              const validProperty =
+                validModelInternal(objectStructure.objectProperties[key]
+                  , newReferences);
+
+              return validProperty(modelInstance[key]);
             })
           )
           .then(() => {
@@ -205,14 +284,19 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
           .catch((error) => {
             return reject(error);
           });
+        }
 
-        case kindOfSchema.union:
+        case kindOfSchema.union: {
           // Casting for better inference.
           const unionStructure = typeSchema as unionSchema;
 
           return anyPromise(
             unionStructure.unionTypes.map((singleTypeFromUnion: typeSchema) => {
-              return validModel(singleTypeFromUnion)(modelInstance);
+
+              const validUnionType =
+                validModelInternal(singleTypeFromUnion, references);
+
+              return validUnionType(modelInstance);
             })
           )
           .then(() => {
@@ -224,7 +308,60 @@ export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => 
               schemaTypeError.unionHasNoMatchingType
             );
           });
+        }
+
+        case kindOfSchema.reference: {
+          // Casting for better inference.
+          const referenceStructure = typeSchema as referenceSchema;
+          const referencingStructure = references[referenceStructure.referenceName];
+
+          // If the reference is not in accumulator, throw error. Should only
+          // happen to people in development (assuming they have tests).
+          if(!referencingStructure) {
+            return reject(
+              schemaTypeError.referenceNotFound
+            );
+          }
+
+          // We need to dereferences the refrence and then overwrite the
+          // additional fields if specified.
+          const referenceActualTypeSchema =
+            mergeSchemas(referencingStructure, referenceStructure);
+
+          return resolve(
+            validModelInternal(referenceActualTypeSchema, references)(modelInstance)
+          );
+        }
       }
     });
   }
+}
+
+
+/**
+ * Export types used in library so that a user can create their own
+ * `typeSchema`s (and have them be type checked).
+ */
+export * from "./types";
+
+
+/**
+ * Asserts that a model is valid according to a schema.
+ *
+ * A valid model means:
+ *  - No extra properties are present anywhere in the model.
+ *  - All neccessary properties are present.
+ *  - Every property has the correct type
+ *  - All restrictions are met for that property.
+ *
+ * @param typeSchema A representation of a valid model.
+ * @param modelInstance An instane of the model being validified
+ * @returns Promise<void>, if the promise was `resolve`d, the model is valid,
+ *          if the promise was `reject`ed, there was an error.
+ *
+ * NOTE: The function is curried. This allows you to build your validifiers once
+ *       and use them all over your code (keep it DRY).
+ */
+export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => {
+  return validModelInternal(typeSchema, {});
 }

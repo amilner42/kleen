@@ -8,7 +8,10 @@
   },
   "exclude": [
     "lib",
-    "node_modules"
+    "node_modules",
+    "website",
+    "docs",
+    "bin"
   ],
   "compileOnSave": false
 }
