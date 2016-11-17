@@ -971,5 +971,44 @@ describe("src/main.ts", function() {
       );
     });
 
+    const objectOverwriteContext: objectSchema = {
+      name: "name",
+      objectProperties: {
+        recursive: {
+          referenceName: "name",
+          withContext: () => {
+            return {
+              "primitive": numberType
+            }
+          },
+          undefinedAllowed: true
+        },
+        primitive: {
+          referenceName: "primitive"
+        }
+      },
+      withContext: () => {
+        return {
+          "primitive": stringType
+        }
+      }
+    };
+
+    const validObjectOverwriteContext =
+      validModel(objectOverwriteContext);
+
+    it('should allow you to overwrite the context in a reference', function(done) {
+
+      mochaAssertPromiseResovles(
+        validObjectOverwriteContext({
+          recursive: {
+            primitive: 50 // primitive was overwritten to be a number
+          },
+          primitive: "someString"
+        }),
+        done
+      );
+    });
+
   });
 });
