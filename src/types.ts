@@ -5,7 +5,7 @@
  * Maps the reference names to there schema. (Acc == accumulator)
  */
 export interface referenceAcc {
-  [referenceName: string]: typeSchema<any, any>
+  [referenceName: string]: typeSchema<any>
 }
 
 
@@ -94,12 +94,12 @@ export type restriction<CaptureOut, CaptureIn> =
 /**
  * A formal representation of the structure of a `type`.
  */
-export type typeSchema<CaptureOut, CaptureIn>
+export type typeSchema<CaptureOut>
   = primitiveSchema<CaptureOut>
   | arraySchema<CaptureOut, any>
-  | unionSchema<CaptureOut, CaptureIn>
+  | unionSchema<CaptureOut>
   | objectSchema<CaptureOut, any>
-  | referenceSchema<CaptureOut, CaptureIn>;
+  | referenceSchema<CaptureOut, any>;
 
 
 /**
@@ -154,7 +154,7 @@ export interface objectSchema<CaptureOut, PropertyCaptureOut>
     /**
      * Each property has a type.
      */
-    [propertyName: string]: typeSchema<PropertyCaptureOut, any>;
+    [propertyName: string]: typeSchema<PropertyCaptureOut>;
   };
 }
 
@@ -191,7 +191,7 @@ export interface arraySchema<CaptureOut, ElementCaptureOut>
   /**
    * The type of a single element in the array.
    */
-  arrayElementType: typeSchema<ElementCaptureOut, any>;
+  arrayElementType: typeSchema<ElementCaptureOut>;
 }
 
 
@@ -205,11 +205,11 @@ export interface arraySchema<CaptureOut, ElementCaptureOut>
  *       can result in infinite expansion. With a union we validate against the
  *       same modelInstance, so the type itself just repeatedly unravels.
  */
-export interface unionSchema<CaptureOut, CaptureIn> extends baseSchema {
+export interface unionSchema<CaptureOut> extends baseSchema {
   /**
    * A union of all the types in `typeSchema`.
    */
-  unionTypes: typeSchema<CaptureOut, CaptureIn>[];
+  unionTypes: typeSchema<CaptureOut>[];
 }
 
 
