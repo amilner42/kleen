@@ -21,8 +21,10 @@ import { isNull, isUndefined, anyPromise } from "./util";
  * NOTE: While this creates a new object, it only does a shallow copy so all
  *       references still point to the same typeSchemas.
  */
-const createNewReferenceAccumulator = (currentReferenceAccumulator: referenceAcc
-    , typeSchema: typeSchema): referenceAcc => {
+const createNewReferenceAccumulator = (
+    currentReferenceAccumulator: referenceAcc,
+    typeSchema: typeSchema<any>)
+    : referenceAcc => {
 
   if(!typeSchema["name"]) {
     return currentReferenceAccumulator;
@@ -41,7 +43,11 @@ const createNewReferenceAccumulator = (currentReferenceAccumulator: referenceAcc
  * A reference is allowed to overwrite properties in the object that it is
  * referencing, that logic is implemented here.
  */
-const mergeSchemas = (referencingSchema: typeSchema, referenceSchema: referenceSchema): typeSchema => {
+const mergeSchemas = (
+    referencingSchema: typeSchema<any>,
+    referenceSchema: referenceSchema<any,any>)
+    : typeSchema<any> => {
+
   // These properties can be over-written.
   const overWriteableProperties = [
     "nullAllowed",
@@ -69,13 +75,22 @@ const mergeSchemas = (referencingSchema: typeSchema, referenceSchema: referenceS
  * properties it has (eg. `arrayElementType`), if it does not have exactly one
  * unique property, null is returned.
  */
-const getTypeOfSchema = (typeSchema: typeSchema) => {
+const getTypeOfSchema = (typeSchema: typeSchema<any>): kindOfSchema => {
 
-  const isObject = !isUndefined((typeSchema as objectSchema).objectProperties);
-  const isArray = !isUndefined((typeSchema as arraySchema).arrayElementType);
-  const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
-  const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
-  const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
+  const isObject =
+    !isUndefined((typeSchema as objectSchema<any,any>).objectProperties);
+
+  const isArray =
+    !isUndefined((typeSchema as arraySchema<any,any>).arrayElementType);
+
+  const isPrimitive =
+    !isUndefined((typeSchema as primitiveSchema<any>).primitiveType);
+
+  const isUnion =
+    !isUndefined((typeSchema as unionSchema<any>).unionTypes);
+
+  const isReference =
+    !isUndefined((typeSchema as referenceSchema<any,any>).referenceName);
 
   const kindOfTypeSchema =
     (isObject && !isArray && !isPrimitive && !isUnion && !isReference)
@@ -112,10 +127,12 @@ const getTypeOfSchema = (typeSchema: typeSchema) => {
  *              typeSchemas. This is how we handle references internally,
  *              adding them as we go through an object.
  */
-const validModelInternal = (typeSchema: typeSchema
-    , references: referenceAcc): ((any) => Promise<void>) => {
+const validModelInternal = <CaptureOut>(
+    typeSchema: typeSchema<CaptureOut>,
+    references: referenceAcc)
+    : ((any) => Promise<CaptureOut>) => {
 
-  return (modelInstance: any): Promise<void> => {
+  return (modelInstance: any): Promise<CaptureOut> => {
 
     /**
      * If a restriction exists, checks it.
@@ -124,7 +141,7 @@ const validModelInternal = (typeSchema: typeSchema
      * from `void | Promis<void>`  to `Promise<void>`.
      */
     const modelInstanceFollowsRestriction =
-        (restriction: restriction): Promise<void> => {
+        (restriction: restriction<any,any>): Promise<void> => {
       // If no restriction then the model follows the restriction.
       if(!restriction) {
         return Promise.resolve();
@@ -138,10 +155,10 @@ const validModelInternal = (typeSchema: typeSchema
     }
 
     // Validaton performed inside.
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<CaptureOut>((resolve, reject) => {
 
       // Helper for staying DRY.
-      const resolveIfRestrictionMet = (restriction: restriction): Promise<void> => {
+      const resolveIfRestrictionMet = (restriction: restriction<any,any>): Promise<void> => {
         return modelInstanceFollowsRestriction(restriction)
         .then(() => {
           return resolve();
@@ -201,7 +218,7 @@ const validModelInternal = (typeSchema: typeSchema
 
         case kindOfSchema.primitive: {
           // Cast for better inference.
-          const primitiveStructure = typeSchema as primitiveSchema;
+          const primitiveStructure = typeSchema as primitiveSchema<any>;
           const primitiveTypeStringName =
             kindOfPrimitive[primitiveStructure.primitiveType];
 
@@ -217,7 +234,7 @@ const validModelInternal = (typeSchema: typeSchema
 
         case kindOfSchema.array: {
           // Casting for better inference.
-          const arrayStructure = typeSchema as arraySchema;
+          const arrayStructure = typeSchema as arraySchema<any,any>;
           if(!Array.isArray(modelInstance)) {
             return reject(
               arrayStructure.typeFailureError ||
@@ -246,7 +263,7 @@ const validModelInternal = (typeSchema: typeSchema
 
         case kindOfSchema.object: {
           // Casting for better inference.
-          const objectStructure = typeSchema as objectSchema;
+          const objectStructure = typeSchema as objectSchema<any,any>;
 
           if(typeof modelInstance !== "object") {
             return reject(
@@ -288,10 +305,10 @@ const validModelInternal = (typeSchema: typeSchema
 
         case kindOfSchema.union: {
           // Casting for better inference.
-          const unionStructure = typeSchema as unionSchema;
+          const unionStructure = typeSchema as unionSchema<any>;
 
           return anyPromise(
-            unionStructure.unionTypes.map((singleTypeFromUnion: typeSchema) => {
+            unionStructure.unionTypes.map((singleTypeFromUnion: typeSchema<any>) => {
 
               const validUnionType =
                 validModelInternal(singleTypeFromUnion, references);
@@ -312,7 +329,7 @@ const validModelInternal = (typeSchema: typeSchema
 
         case kindOfSchema.reference: {
           // Casting for better inference.
-          const referenceStructure = typeSchema as referenceSchema;
+          const referenceStructure = typeSchema as referenceSchema<any,any>;
           const referencingStructure = references[referenceStructure.referenceName];
 
           // If the reference is not in accumulator, throw error. Should only
@@ -362,6 +379,8 @@ export * from "./types";
  * NOTE: The function is curried. This allows you to build your validifiers once
  *       and use them all over your code (keep it DRY).
  */
-export const validModel = (typeSchema: typeSchema): ((any) => Promise<void>) => {
+export const validModel = <CaptureOut>(
+    typeSchema: typeSchema<CaptureOut>)
+    : ((any) => Promise<CaptureOut>) => {
   return validModelInternal(typeSchema, {});
 }
