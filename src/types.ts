@@ -5,7 +5,7 @@
  * Maps the reference names to there schema. (Acc == accumulator)
  */
 export interface referenceAcc {
-  [referenceName: string]: typeSchema<any>
+  [referenceName: string]: typeSchema<any, any>
 }
 
 
@@ -36,8 +36,8 @@ export interface baseSchema {
  * union schemas (because in a union, each individual schema should have it's
  * own restrictions).
  */
-export interface restrictable<CaptureOut, CaptureIn> {
-  restriction?: restriction<CaptureOut, CaptureIn>;
+export interface restrictable<Input extends Object, Output extends Object> {
+  restriction?: restriction<Input, Output>;
 }
 
 /**
@@ -87,19 +87,19 @@ export enum kindOfPrimitive {
  * `Promise.reject(any error)` too fail the restriction, otherwise it succeeds.
  *
  */
-export type restriction<CaptureOut, CaptureIn> =
-  (modelInstance: any, captured?: CaptureIn) => void | Promise<CaptureOut>;
+export type restriction<Input extends Object, Output extends Object> =
+  (modelInstance: any, captured?: Input) => void | Promise<Output>;
 
 
 /**
  * A formal representation of the structure of a `type`.
  */
-export type typeSchema<CaptureOut>
-  = primitiveSchema<CaptureOut>
-  | arraySchema<CaptureOut, any>
-  | unionSchema<CaptureOut>
-  | objectSchema<CaptureOut, any>
-  | referenceSchema<CaptureOut, any>;
+export type typeSchema<Input extends Object, Output extends Object>
+  = primitiveSchema<Output>
+  | arraySchema<Input, Output>
+  | unionSchema<Input, Output>
+  | objectSchema<Input, Output>
+  | referenceSchema<Input, Output>;
 
 
 /**
@@ -124,10 +124,10 @@ export type typeSchema<CaptureOut>
  * will overwrite whatever was specified in the object itself). If you don't
  * want to change any of the additional properties, simply don't specify them.
  */
-export interface referenceSchema<CaptureOut, CaptureIn>
+export interface referenceSchema<Input extends Object, Output extends Object>
   extends
     baseSchema,
-    restrictable<CaptureOut, CaptureIn> {
+    restrictable<Input, Output> {
 
   /**
    * The name of the object we are referencing.
@@ -141,10 +141,10 @@ export interface referenceSchema<CaptureOut, CaptureIn>
 *
 * NOTE: This maps over to an `interface` from typescript.
 */
-export interface objectSchema<CaptureOut, PropertyCaptureOut>
+export interface objectSchema<Input extends Object, Output extends Object>
   extends
     baseSchema,
-    restrictable<CaptureOut, {[key: string]: PropertyCaptureOut}>,
+    restrictable<Input, Output>,
     nameable {
 
   /**
@@ -154,7 +154,7 @@ export interface objectSchema<CaptureOut, PropertyCaptureOut>
     /**
      * Each property has a type.
      */
-    [propertyName: string]: typeSchema<PropertyCaptureOut>;
+    [propertyName: string]: typeSchema<any, Input>;
   };
 }
 
@@ -162,10 +162,10 @@ export interface objectSchema<CaptureOut, PropertyCaptureOut>
 /**
  * A formal representation of the structure of a primitive.
  */
-export interface primitiveSchema<CaptureOut>
+export interface primitiveSchema<Output extends Object>
   extends
     baseSchema,
-    restrictable<CaptureOut, undefined> {
+    restrictable<undefined, Output> {
 
   /**
    * Specifiying which `kindOfPrimitive` it is.
@@ -182,16 +182,16 @@ export interface primitiveSchema<CaptureOut>
  * determined from the restrictions placed on the `arrayElementType`
  * `typeSchema`.
  */
-export interface arraySchema<CaptureOut, ElementCaptureOut>
+export interface arraySchema<Input extends Object, Output extends Object>
   extends
     baseSchema,
-    restrictable<CaptureOut, Array<ElementCaptureOut>>,
+    restrictable<Input,Output>,
     nameable {
 
   /**
    * The type of a single element in the array.
    */
-  arrayElementType: typeSchema<ElementCaptureOut>;
+  arrayElementType: typeSchema<any, Input>;
 }
 
 
@@ -205,11 +205,14 @@ export interface arraySchema<CaptureOut, ElementCaptureOut>
  *       can result in infinite expansion. With a union we validate against the
  *       same modelInstance, so the type itself just repeatedly unravels.
  */
-export interface unionSchema<CaptureOut> extends baseSchema {
+export interface unionSchema<Input extends Object, Output extends Object>
+  extends
+    baseSchema {
+
   /**
    * A union of all the types in `typeSchema`.
    */
-  unionTypes: typeSchema<CaptureOut>[];
+  unionTypes: typeSchema<Input, Output>[];
 }
 
 
