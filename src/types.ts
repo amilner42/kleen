@@ -5,7 +5,7 @@
  * Maps the reference names to there schema. (Acc == accumulator)
  */
 export interface referenceAcc {
-  [referenceName: string]: typeSchema
+  [referenceName: string]: typeSchema<any, any>
 }
 
 
@@ -36,8 +36,8 @@ export interface baseSchema {
  * union schemas (because in a union, each individual schema should have it's
  * own restrictions).
  */
-export interface restrictable {
-  restriction?: restriction;
+export interface restrictable<CaptureOut, CaptureIn> {
+  restriction?: restriction<CaptureOut, CaptureIn>;
 }
 
 /**
@@ -85,19 +85,21 @@ export enum kindOfPrimitive {
 /**
  * A restriction can be placed on any `restrictableType`, for which it should
  * `Promise.reject(any error)` too fail the restriction, otherwise it succeeds.
+ *
  */
-export type restriction = (modelInstance: any) => void | Promise<void>;
+export type restriction<CaptureOut, CaptureIn> =
+  (modelInstance: any, captured?: CaptureIn) => void | Promise<CaptureOut>;
 
 
 /**
  * A formal representation of the structure of a `type`.
  */
-export type typeSchema
-  = primitiveSchema
-  | arraySchema
-  | unionSchema
-  | objectSchema
-  | referenceSchema;
+export type typeSchema<CaptureOut, CaptureIn>
+  = primitiveSchema<CaptureOut>
+  | arraySchema<CaptureOut, any>
+  | unionSchema<CaptureOut, CaptureIn>
+  | objectSchema<CaptureOut, any>
+  | referenceSchema<CaptureOut, CaptureIn>;
 
 
 /**
@@ -122,7 +124,11 @@ export type typeSchema
  * will overwrite whatever was specified in the object itself). If you don't
  * want to change any of the additional properties, simply don't specify them.
  */
-export interface referenceSchema extends baseSchema, restrictable {
+export interface referenceSchema<CaptureOut, CaptureIn>
+  extends
+    baseSchema,
+    restrictable<CaptureOut, CaptureIn> {
+
   /**
    * The name of the object we are referencing.
    */
@@ -135,7 +141,12 @@ export interface referenceSchema extends baseSchema, restrictable {
 *
 * NOTE: This maps over to an `interface` from typescript.
 */
-export interface objectSchema extends baseSchema, restrictable, nameable {
+export interface objectSchema<CaptureOut, PropertyCaptureOut>
+  extends
+    baseSchema,
+    restrictable<CaptureOut, {[key: string]: PropertyCaptureOut}>,
+    nameable {
+
   /**
    * The properties on the interface.
    */
@@ -143,7 +154,7 @@ export interface objectSchema extends baseSchema, restrictable, nameable {
     /**
      * Each property has a type.
      */
-    [propertyName: string]: typeSchema;
+    [propertyName: string]: typeSchema<PropertyCaptureOut, any>;
   };
 }
 
@@ -151,7 +162,11 @@ export interface objectSchema extends baseSchema, restrictable, nameable {
 /**
  * A formal representation of the structure of a primitive.
  */
-export interface primitiveSchema extends baseSchema, restrictable {
+export interface primitiveSchema<CaptureOut>
+  extends
+    baseSchema,
+    restrictable<CaptureOut, undefined> {
+
   /**
    * Specifiying which `kindOfPrimitive` it is.
    */
@@ -167,11 +182,16 @@ export interface primitiveSchema extends baseSchema, restrictable {
  * determined from the restrictions placed on the `arrayElementType`
  * `typeSchema`.
  */
-export interface arraySchema extends baseSchema, restrictable, nameable {
+export interface arraySchema<CaptureOut, ElementCaptureOut>
+  extends
+    baseSchema,
+    restrictable<CaptureOut, Array<ElementCaptureOut>>,
+    nameable {
+
   /**
    * The type of a single element in the array.
    */
-  arrayElementType: typeSchema;
+  arrayElementType: typeSchema<ElementCaptureOut, any>;
 }
 
 
@@ -185,11 +205,11 @@ export interface arraySchema extends baseSchema, restrictable, nameable {
  *       can result in infinite expansion. With a union we validate against the
  *       same modelInstance, so the type itself just repeatedly unravels.
  */
-export interface unionSchema extends baseSchema {
+export interface unionSchema<CaptureOut, CaptureIn> extends baseSchema {
   /**
    * A union of all the types in `typeSchema`.
    */
-  unionTypes: typeSchema[];
+  unionTypes: typeSchema<CaptureOut, CaptureIn>[];
 }
 
 
