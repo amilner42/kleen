@@ -52,15 +52,14 @@ export interface nameable {
 /**
  * This type is not used in the API, but can be helpful when working with
  * schemas and behaving according to the type of schema.
- *
- * TODO: Do we want a function for getting the typeOfSchema?
  */
 export enum kindOfSchema {
   primitive,
   array,
   union,
   object,
-  reference
+  reference,
+  map
 }
 
 
@@ -97,7 +96,8 @@ export type typeSchema
   | arraySchema
   | unionSchema
   | objectSchema
-  | referenceSchema;
+  | referenceSchema
+  | mapSchema;
 
 
 /**
@@ -194,6 +194,16 @@ export interface unionSchema extends baseSchema {
 
 
 /**
+ * A map schema is similar to an object schema, but instead of having an object
+ * with specific properties we check that _all_ the properties in the object
+ * have a specific type. This is useful when you have dynamic keys.
+ */
+export interface mapSchema extends baseSchema, restrictable, nameable {
+  valueSchema: typeSchema;
+}
+
+
+/**
  * Possible errors thrown by the type being invalid.
  */
 export enum schemaTypeError {
@@ -204,6 +214,7 @@ export enum schemaTypeError {
   primitiveFieldInvalid,
   arrayFieldInvalid,
   objectFieldInvalid,
+  mapFieldInvalid,
   objectHasExtraFields,
   unionHasNoMatchingType,
   referenceNotFound

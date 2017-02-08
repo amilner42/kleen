@@ -4,6 +4,7 @@ import {
   typeSchema,
   arraySchema,
   objectSchema,
+  mapSchema,
   unionSchema,
   referenceSchema,
   primitiveSchema,
@@ -76,29 +77,34 @@ const getTypeOfSchema = (typeSchema: typeSchema) => {
   const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
   const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
   const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
+  const isMap = !isUndefined((typeSchema as mapSchema).valueSchema);
 
   const kindOfTypeSchema =
-    (isObject && !isArray && !isPrimitive && !isUnion && !isReference)
+    (isObject && !isArray && !isPrimitive && !isUnion && !isReference && !isMap)
       ?
         kindOfSchema.object
       :
-        (!isObject && isArray && !isPrimitive && !isUnion && !isReference)
+        (!isObject && isArray && !isPrimitive && !isUnion && !isReference && !isMap)
           ?
             kindOfSchema.array
           :
-            (!isObject && !isArray && isPrimitive && !isUnion && !isReference)
+            (!isObject && !isArray && isPrimitive && !isUnion && !isReference && !isMap)
               ?
                 kindOfSchema.primitive
               :
-                (!isObject && !isArray && !isPrimitive && isUnion && !isReference)
+                (!isObject && !isArray && !isPrimitive && isUnion && !isReference && !isMap)
                   ?
                     kindOfSchema.union
                   :
-                    (!isObject && !isArray && !isPrimitive && !isUnion && isReference)
+                    (!isObject && !isArray && !isPrimitive && !isUnion && isReference && !isMap)
                     ?
                       kindOfSchema.reference
                     :
-                      null;
+                      (!isObject && !isArray && !isPrimitive && !isUnion && !isReference && isMap)
+                      ?
+                        kindOfSchema.map
+                      :
+                        null;
 
   return kindOfTypeSchema;
 }
@@ -196,7 +202,7 @@ const validModelInternal = (typeSchema: typeSchema
         references = Object.assign({}, references, typeSchema.withContext());
       }
 
-      // Handle 5 cases depending on the `kindOfSchema`.
+      // Handle 6 cases depending on the `kindOfSchema`.
       switch(kindOfTypeSchema) {
 
         case kindOfSchema.primitive: {
@@ -255,6 +261,13 @@ const validModelInternal = (typeSchema: typeSchema
             );
           }
 
+          if(Array.isArray(modelInstance)) {
+            return reject(
+              objectStructure.typeFailureError ||
+              schemaTypeError.objectFieldInvalid
+            );
+          }
+
           // Unspecified properties on `modeInstance` not allowed.
           for(let modelProperty in modelInstance) {
             if(!objectStructure.objectProperties[modelProperty]) {
@@ -280,6 +293,43 @@ const validModelInternal = (typeSchema: typeSchema
           )
           .then(() => {
             return resolveIfRestrictionMet(objectStructure.restriction);
+          })
+          .catch((error) => {
+            return reject(error);
+          });
+        }
+
+        case kindOfSchema.map: {
+          // Casting for better inference.
+          const mapStructure = typeSchema as mapSchema;
+
+          if(typeof modelInstance !== "object") {
+            return reject(
+              mapStructure.typeFailureError ||
+              schemaTypeError.mapFieldInvalid
+            );
+          }
+
+          if(Array.isArray(modelInstance)) {
+            return reject(
+              mapStructure.typeFailureError ||
+              schemaTypeError.mapFieldInvalid
+            );
+          }
+
+          const newReferences =
+            createNewReferenceAccumulator(references, mapStructure);
+
+          const validProperty =
+            validModelInternal(mapStructure.valueSchema, newReferences);
+
+          return Promise.all(
+            Object.keys(modelInstance).map((key: string) => {
+              return validProperty(modelInstance[key]);
+            })
+          )
+          .then(() => {
+            return resolveIfRestrictionMet(mapStructure.restriction);
           })
           .catch((error) => {
             return reject(error);

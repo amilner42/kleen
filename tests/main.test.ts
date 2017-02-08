@@ -5,6 +5,7 @@ import {
   arraySchema,
   typeSchema,
   objectSchema,
+  mapSchema,
   primitiveSchema,
   unionSchema,
   referenceSchema,
@@ -199,6 +200,96 @@ describe("src/main.ts", function() {
         done
       );
     });
+
+    const basicMapSchema: mapSchema = {
+      valueSchema: stringType
+    };
+
+    const validBasicMapSchema = validModel(basicMapSchema);
+
+    it('should allow an empty map against a basic map schema', function(done) {
+      mochaAssertPromiseResovles(
+        validBasicMapSchema({}),
+        done
+      );
+    });
+
+    it('should allow a valid map against a basic map schema', function(done) {
+      mochaAssertPromiseResovles(
+        validBasicMapSchema({bla: "adsf", basdfasdfa: "asdf"}),
+        done
+      );
+    });
+
+    it('should not allow an invalid map against a basic map schema', function(done) {
+      mochaAssertPromiseErrors(
+        validBasicMapSchema({asdf: "asdf", asas: "asdfasdf", badProp: 5}),
+        done
+      );
+    });
+
+    it('should not allow an invalid map against a basic map schema', function(done) {
+      mochaAssertPromiseErrors(
+        validBasicMapSchema({asdf: "asdf", asas: "asdfasdf", badProp: null}),
+        done
+      );
+    });
+
+    it('should not allow an invalid map against a basic map schema', function(done) {
+      mochaAssertPromiseErrors(
+        validBasicMapSchema({asdf: "asdf", asas: "asdfasdf", badProp: undefined}),
+        done
+      );
+    });
+
+    it('should not allow an invalid map against a basic map schema', function(done) {
+      mochaAssertPromiseErrors(
+        validBasicMapSchema(null),
+        done
+      );
+    });
+
+    it('should not allow an invalid map against a basic map schema', function(done) {
+      mochaAssertPromiseErrors(
+        validBasicMapSchema(undefined),
+        done
+      );
+    });
+
+    it('should not allow an invalid map against a basic map schema', function(done) {
+      mochaAssertPromiseErrors(
+        validBasicMapSchema(["asdf"]),
+        done
+      );
+    });
+
+    const basicMapSchemaWithRestriction: mapSchema = {
+      valueSchema: stringType,
+      restriction: (map) => {
+        if(map["no"] === "not this string") {
+          return Promise.reject("no!");
+        }
+      }
+    };
+
+    const validBasicMapSchemaWithRestriction =
+      validModel(basicMapSchemaWithRestriction)
+
+    it('should run restrictions for the map schema', function(done) {
+      mochaAssertPromiseResovles(
+        validBasicMapSchemaWithRestriction({ no: "bla"}),
+        done
+      )
+    });
+
+    it('should run restrictions for the map schema', function(done) {
+      mochaAssertPromiseErrorsWith(
+        validBasicMapSchemaWithRestriction({ no: "not this string"}),
+        (error => error === "no!"),
+        done
+      );
+    });
+
 
     // Notice BEFORE the restriction is checked the type will be guaranteed,
     // here the restriction would fail but we never run it because the type of
