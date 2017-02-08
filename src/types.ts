@@ -199,7 +199,7 @@ export interface unionSchema extends baseSchema {
  * have a specific type. This is useful when you have dynamic keys.
  */
 export interface mapSchema extends baseSchema, restrictable, nameable {
-  valueSchema: typeSchema;
+  mapValueType: typeSchema;
 }
 
 

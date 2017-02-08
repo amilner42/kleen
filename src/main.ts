@@ -77,7 +77,7 @@ const getTypeOfSchema = (typeSchema: typeSchema) => {
   const isPrimitive = !isUndefined((typeSchema as primitiveSchema).primitiveType);
   const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
   const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
-  const isMap = !isUndefined((typeSchema as mapSchema).valueSchema);
+  const isMap = !isUndefined((typeSchema as mapSchema).mapValueType);
 
   const kindOfTypeSchema =
     (isObject && !isArray && !isPrimitive && !isUnion && !isReference && !isMap)
@@ -321,7 +321,7 @@ const validModelInternal = (typeSchema: typeSchema
             createNewReferenceAccumulator(references, mapStructure);
 
           const validProperty =
-            validModelInternal(mapStructure.valueSchema, newReferences);
+            validModelInternal(mapStructure.mapValueType, newReferences);
 
           return Promise.all(
             Object.keys(modelInstance).map((key: string) => {

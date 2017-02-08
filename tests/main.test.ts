@@ -202,7 +202,7 @@ describe("src/main.ts", function() {
     });
 
     const basicMapSchema: mapSchema = {
-      valueSchema: stringType
+      mapValueType: stringType
     };
 
     const validBasicMapSchema = validModel(basicMapSchema);
@@ -264,7 +264,7 @@ describe("src/main.ts", function() {
     });
 
     const basicMapSchemaWithRestriction: mapSchema = {
-      valueSchema: stringType,
+      mapValueType: stringType,
       restriction: (map) => {
         if(map["no"] === "not this string") {
           return Promise.reject("no!");

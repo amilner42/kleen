@@ -49,7 +49,7 @@ export interface unionSchema extends baseSchema {
     unionTypes: typeSchema[];
 }
 export interface mapSchema extends baseSchema, restrictable, nameable {
-    valueSchema: typeSchema;
+    mapValueType: typeSchema;
 }
 export declare enum schemaTypeError {
     invalidSchema = 0,
