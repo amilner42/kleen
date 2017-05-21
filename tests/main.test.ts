@@ -9,6 +9,7 @@ import {
   primitiveSchema,
   unionSchema,
   referenceSchema,
+  anySchema,
   restriction,
   kindOfPrimitive,
   kindOfSchema,
@@ -30,11 +31,93 @@ describe("src/main.ts", function() {
       primitiveType: kindOfPrimitive.string
     };
 
-    const validString = validModel(stringType);
+    const numberType: primitiveSchema = {
+      primitiveType: kindOfPrimitive.number
+    };
 
     const booleanType: primitiveSchema = {
       primitiveType: kindOfPrimitive.boolean
     };
+
+    const anyType: anySchema = {
+      isAny: true
+    };
+
+    const validAny = validModel(anyType);
+
+    it('should allow all types (except null/undefined) for an anySchema with no restriction',
+    function(done) {
+      const validTypes = [ 5, "string", true, { first: 1, second: "two" } ];
+      mochaAssertPromiseResovles(Promise.all(validTypes.map(validAny)), done);
+    });
+
+    it('should not allow null for an anySchema which does not set nullAllowed',
+    function(done) {
+      mochaAssertPromiseErrors(validAny(null), done);
+    });
+
+    it('should not allow undefined for an anySchema which does not set undefinedAllowed',
+    function(done) {
+      mochaAssertPromiseErrors(validAny(undefined), done);
+    });
+
+    const anyNonTruthyValueSchema: anySchema = {
+      isAny: true,
+      nullAllowed: true,
+      undefinedAllowed: true,
+      restriction: (truthyValue: any) => {
+        if(truthyValue) {
+          return Promise.reject("restriction-error");
+        }
+      }
+    };
+
+    const validAnyNonTruthyValueSchema = validModel(anyNonTruthyValueSchema);
+
+    it('should fail against anySchema when the restriction is not met', function(done) {
+      mochaAssertPromiseErrorsWith(
+        validAnyNonTruthyValueSchema(true),
+        (error) => {
+          return error === "restriction-error"
+        },
+        done
+      );
+    });
+
+    const anyWithLengthRestriction: anySchema = {
+      isAny: true,
+      nullAllowed: true,
+      undefinedAllowed: true,
+      restriction: (anyWithLength: { length: number }) => {
+        if(!(anyWithLength.length <= 3)) {
+          return Promise.reject("restriction-error");
+        }
+      }
+    };
+
+    const validAnyWithLengthRestriction = validModel(anyWithLengthRestriction);
+
+    it('should pass against anySchema when restriction is met', function(done) {
+      const validTypes = [
+        null,
+        undefined,
+        [],
+        [1],
+        [5,0],
+        [0,-1,2],
+        { length: -3 },
+        { length: 2, width: 10 },
+        "",
+        "Bye"
+      ];
+
+      mochaAssertPromiseResovles(
+        Promise.all(validTypes.map(validAnyWithLengthRestriction)),
+        done
+      );
+    });
+
+    const validString = validModel(stringType);
 
     it("should allow valid strings", function(done) {
       mochaAssertPromiseResovles(validString(""), done);
@@ -47,10 +130,6 @@ describe("src/main.ts", function() {
     it("should not allow undefined by default", function(done) {
       mochaAssertPromiseErrors(validString(undefined), done);
     });
-
-    const numberType: primitiveSchema = {
-      primitiveType: kindOfPrimitive.number
-    };
 
     const stringAllowingNullOrUndefined: primitiveSchema = {
       primitiveType: kindOfPrimitive.string,

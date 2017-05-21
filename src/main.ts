@@ -8,6 +8,7 @@ import {
   unionSchema,
   referenceSchema,
   primitiveSchema,
+  anySchema,
   restriction,
   schemaTypeError,
   referenceAcc
@@ -78,33 +79,38 @@ const getTypeOfSchema = (typeSchema: typeSchema) => {
   const isUnion = !isUndefined((typeSchema as unionSchema).unionTypes);
   const isReference = !isUndefined((typeSchema as referenceSchema).referenceName);
   const isMap = !isUndefined((typeSchema as mapSchema).mapValueType);
+  const isAny = (typeSchema as anySchema).isAny;
 
   const kindOfTypeSchema =
-    (isObject && !isArray && !isPrimitive && !isUnion && !isReference && !isMap)
+    (isObject && !isArray && !isPrimitive && !isUnion && !isReference && !isMap && !isAny)
       ?
         kindOfSchema.object
       :
-        (!isObject && isArray && !isPrimitive && !isUnion && !isReference && !isMap)
+        (!isObject && isArray && !isPrimitive && !isUnion && !isReference && !isMap && !isAny)
           ?
             kindOfSchema.array
           :
-            (!isObject && !isArray && isPrimitive && !isUnion && !isReference && !isMap)
+            (!isObject && !isArray && isPrimitive && !isUnion && !isReference && !isMap && !isAny)
               ?
                 kindOfSchema.primitive
               :
-                (!isObject && !isArray && !isPrimitive && isUnion && !isReference && !isMap)
+                (!isObject && !isArray && !isPrimitive && isUnion && !isReference && !isMap && !isAny)
                   ?
                     kindOfSchema.union
                   :
-                    (!isObject && !isArray && !isPrimitive && !isUnion && isReference && !isMap)
+                    (!isObject && !isArray && !isPrimitive && !isUnion && isReference && !isMap && !isAny)
                     ?
                       kindOfSchema.reference
                     :
-                      (!isObject && !isArray && !isPrimitive && !isUnion && !isReference && isMap)
+                      (!isObject && !isArray && !isPrimitive && !isUnion && !isReference && isMap && !isAny)
                       ?
                         kindOfSchema.map
                       :
-                        null;
+                        (!isObject && !isArray && !isPrimitive && !isUnion && !isReference && !isMap && isAny)
+                        ?
+                          kindOfSchema.any
+                        :
+                          null;
 
   return kindOfTypeSchema;
 }
@@ -382,6 +388,13 @@ const validModelInternal = (typeSchema: typeSchema
             validModelInternal(referenceActualTypeSchema, references)(modelInstance)
           );
         }
+
+        case kindOfSchema.any: {
+          // Cast for better inference.
+          const anyStructure = typeSchema as anySchema;
+          return resolveIfRestrictionMet(anyStructure.restriction);
+        }
+            
       }
     });
   }
