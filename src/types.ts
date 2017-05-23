@@ -59,7 +59,8 @@ export enum kindOfSchema {
   union,
   object,
   reference,
-  map
+  map,
+  any
 }
 
 
@@ -97,7 +98,8 @@ export type typeSchema
   | unionSchema
   | objectSchema
   | referenceSchema
-  | mapSchema;
+  | mapSchema
+  | anySchema;
 
 
 /**
@@ -202,6 +204,15 @@ export interface mapSchema extends baseSchema, restrictable, nameable {
   mapValueType: typeSchema;
 }
 
+
+/**
+* An 'any' schema is similar to the 'any' type in typescript. It is used to
+* validate models against any type of data. Used for cases where we only
+* care about the restrictions.
+*/
+export interface anySchema extends baseSchema, restrictable, nameable {
+  isAny: boolean;
+}
 
 /**
  * Possible errors thrown by the type being invalid.

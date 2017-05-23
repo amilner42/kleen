@@ -20,6 +20,7 @@ export declare enum kindOfSchema {
     object = 3,
     reference = 4,
     map = 5,
+    any = 6,
 }
 export declare enum kindOfPrimitive {
     string = 0,
@@ -30,7 +31,7 @@ export declare enum kindOfPrimitive {
     symbol = 5,
 }
 export declare type restriction = (modelInstance: any) => void | Promise<void>;
-export declare type typeSchema = primitiveSchema | arraySchema | unionSchema | objectSchema | referenceSchema | mapSchema;
+export declare type typeSchema = primitiveSchema | arraySchema | unionSchema | objectSchema | referenceSchema | mapSchema | anySchema;
 export interface referenceSchema extends baseSchema, restrictable {
     referenceName: string;
 }
@@ -50,6 +51,9 @@ export interface unionSchema extends baseSchema {
 }
 export interface mapSchema extends baseSchema, restrictable, nameable {
     mapValueType: typeSchema;
+}
+export interface anySchema extends baseSchema, restrictable, nameable {
+    isAny: boolean;
 }
 export declare enum schemaTypeError {
     invalidSchema = 0,
