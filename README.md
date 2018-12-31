@@ -1,5 +1,9 @@
 # [Kleen](https://amilner42.github.io/kleen)
 
+NOTE: I am not currently developing this library and it is missing some key
+features so I probably wouldn't recommend using it right now, there are
+likely better validation libraries.
+
 A typescript library which provides a very thin layer over the typescript
 type system allowing you to extend the compile-time guarantees to run-time.
 Using the [code generator](https://amilner42.github.io/kleen/#generator) you
